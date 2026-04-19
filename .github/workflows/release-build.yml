@@ -93,15 +93,27 @@ jobs:
         if: matrix.platform == 'macos'
         run: |
           mkdir -p release-artifacts
-          cd build/macos/Build/Products/Release
-          zip -r "$GITHUB_WORKSPACE/release-artifacts/macos-release.zip" Runner.app
+          release_app="build/macos/Build/Products/Release/Runner.app"
+          if [ -d "$release_app" ]; then
+            zip -r "$GITHUB_WORKSPACE/release-artifacts/macos-release.zip" "$release_app"
+          else
+            echo "macOS Runner.app not found at $release_app"
+            find build/macos -maxdepth 5 -type d -name 'Runner.app' -print
+            exit 1
+          fi
 
       - name: Package iOS artifact
         if: matrix.platform == 'macos'
         run: |
           mkdir -p release-artifacts
-          cd build/ios/iphoneos
-          zip -r "$GITHUB_WORKSPACE/release-artifacts/ios-release.zip" Runner.app
+          ios_app="build/ios/iphoneos/Runner.app"
+          if [ -d "$ios_app" ]; then
+            zip -r "$GITHUB_WORKSPACE/release-artifacts/ios-release.zip" "$ios_app"
+          else
+            echo "iOS Runner.app not found at $ios_app"
+            find build/ios -maxdepth 5 -type d -name 'Runner.app' -print
+            exit 1
+          fi
 
       - name: Package Windows artifact
         if: matrix.platform == 'windows'

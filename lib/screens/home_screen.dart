@@ -4,6 +4,8 @@ import '../core/strings.dart';
 import '../data/mock_data.dart';
 import '../widgets/friend_card.dart';
 import '../core/theme/app_colors.dart';
+import 'call_screen.dart';
+import 'chat_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.onShowFriendOnMap});
@@ -102,6 +104,16 @@ class HomeScreen extends StatelessWidget {
                 return FriendCard(
                   friend: friend,
                   onShowMap: () => onShowFriendOnMap(friend),
+                  onCall: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CallScreen(friendName: friend.name),
+                    ),
+                  ),
+                  onMessage: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ChatScreen(friendName: friend.name),
+                    ),
+                  ),
                 );
               },
             ),

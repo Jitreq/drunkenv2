@@ -48,6 +48,16 @@ class Strings {
   static const centerLocation = 'Center location';
   static const clearRoute = 'Clear route';
 
+  static const callTitle = 'Call';
+  static const callSubtitle = 'Mock calling session with your friend.';
+  static const callingLabel = 'Calling';
+  static const endCall = 'End call';
+
+  static const chatTitle = 'Messages';
+  static const chatSubtitle = 'Direct message mock conversation.';
+  static const messagePlaceholder = 'Write a message...';
+  static const sendMessage = 'Send';
+
   static const callButton = 'Call';
   static const messageButton = 'Message';
   static const mapButton = 'Map';

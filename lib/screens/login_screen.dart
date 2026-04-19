@@ -13,8 +13,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _emailController = TextEditingController(text: 'example@example.me');
+  final _passwordController = TextEditingController(text: 'password');
   bool _showError = false;
 
   void _submit() {
@@ -118,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 16),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: widget.onLogin,
                           child: const Text(Strings.tryOffline),
                         ),
                       ],

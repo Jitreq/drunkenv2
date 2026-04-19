@@ -5,10 +5,18 @@ import '../core/theme/app_colors.dart';
 import '../data/mock_data.dart';
 
 class FriendCard extends StatelessWidget {
-  const FriendCard({super.key, required this.friend, required this.onShowMap});
+  const FriendCard({
+    super.key,
+    required this.friend,
+    required this.onShowMap,
+    required this.onCall,
+    required this.onMessage,
+  });
 
   final Friend friend;
   final VoidCallback onShowMap;
+  final VoidCallback onCall;
+  final VoidCallback onMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -62,13 +70,13 @@ class FriendCard extends StatelessWidget {
                 _ActionButton(
                   label: Strings.callButton,
                   icon: Icons.phone,
-                  onPressed: () {},
+                  onPressed: onCall,
                 ),
                 const SizedBox(width: 8),
                 _ActionButton(
                   label: Strings.messageButton,
                   icon: Icons.message,
-                  onPressed: () {},
+                  onPressed: onMessage,
                 ),
                 const SizedBox(width: 8),
                 _ActionButton(

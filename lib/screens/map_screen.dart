@@ -1,16 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../core/strings.dart';
 import '../core/theme/app_colors.dart';
 import '../data/mock_data.dart';
 
-class MapScreen extends StatelessWidget {
+class MapScreen extends StatefulWidget {
   const MapScreen({super.key, required this.selectedFriend});
 
   final Friend? selectedFriend;
 
   @override
+  State<MapScreen> createState() => _MapScreenState();
+}
+
+class _MapScreenState extends State<MapScreen> {
+  final MapController _mapController = MapController();
+
+  @override
   Widget build(BuildContext context) {
+    final selectedFriend = widget.selectedFriend;
+    final hasRoute = selectedFriend != null && selectedFriend.sharesLocation;
+
+    final markers = [
+      Marker(
+        width: 92,
+        height: 96,
+        point: LatLng(currentLatitude, currentLongitude),
+        builder: (_) =>
+            const _MapPin(label: Strings.youLabel, color: AppColors.success),
+      ),
+      ...friends
+          .where((friend) => friend.sharesLocation)
+          .map(
+            (friend) => Marker(
+              width: 92,
+              height: 96,
+              point: LatLng(friend.latitude, friend.longitude),
+              builder: (_) =>
+                  _MapPin(label: friend.name, color: AppColors.primary),
+            ),
+          ),
+    ];
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
@@ -28,122 +61,107 @@ class MapScreen extends StatelessWidget {
             ),
             const SizedBox(height: 22),
             Expanded(
-              child: Stack(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(28),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF181E18), Color(0xFF10140F)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                  ),
-                  Positioned.fill(
-                    child: Opacity(
-                      opacity: 0.08,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppColors.surfaceVariant.withAlpha(36),
-                              Colors.transparent,
-                            ],
-                          ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SizedBox(
+                      width: constraints.maxWidth,
+                      height: constraints.maxHeight,
+                      child: FlutterMap(
+                        mapController: _mapController,
+                        options: MapOptions(
+                          center: LatLng(currentLatitude, currentLongitude),
+                          zoom: 14,
+                          minZoom: 5,
                         ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 28,
-                    top: 36,
-                    child: _MapMarker(
-                      label: Strings.youLabel,
-                      color: AppColors.secondary,
-                    ),
-                  ),
-                  Positioned(
-                    right: 26,
-                    top: 86,
-                    child: _MapMarker(
-                      label: 'Emilia',
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  Positioned(
-                    left: 48,
-                    bottom: 90,
-                    child: _MapMarker(label: 'Sara', color: AppColors.success),
-                  ),
-                  Positioned(
-                    right: 40,
-                    bottom: 120,
-                    child: _MapMarker(label: 'Mikko', color: AppColors.outline),
-                  ),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      height: 140,
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceContainer.withAlpha(230),
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(28),
-                        ),
-                        border: Border.all(
-                          color: AppColors.outline.withAlpha(77),
-                        ),
-                      ),
-                      padding: const EdgeInsets.all(18),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            Strings.routeSummaryTitle,
-                            style: Theme.of(context).textTheme.titleLarge,
+                          TileLayer(
+                            urlTemplate:
+                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            userAgentPackageName: 'fi.lappeenranta.drunken_flutter',
+                            backgroundColor: const Color(0xFF181E24),
                           ),
-                          const SizedBox(height: 10),
-                          Text(
-                            selectedFriend != null
-                                ? '${Strings.routeSummaryTitle}: ${selectedFriend!.name} (${selectedFriend!.distance})'
-                                : Strings.routeSummaryEmpty,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              FilledButton(
-                                onPressed: selectedFriend != null
-                                    ? () {}
-                                    : null,
-                                child: const Text(Strings.centerLocation),
-                              ),
-                              const SizedBox(width: 12),
-                              OutlinedButton(
-                                onPressed: selectedFriend != null
-                                    ? () {}
-                                    : null,
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.textPrimary,
-                                  side: BorderSide(
-                                    color: AppColors.outline.withAlpha(179),
-                                  ),
-                                  minimumSize: const Size(130, 48),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
+                          if (hasRoute)
+                            PolylineLayer(
+                              polylines: [
+                                Polyline(
+                                  points: [
+                                    LatLng(currentLatitude, currentLongitude),
+                                    LatLng(
+                                      selectedFriend.latitude,
+                                      selectedFriend.longitude,
+                                    ),
+                                  ],
+                                  strokeWidth: 4,
+                                  color: AppColors.secondary,
+                                  isDotted: true,
                                 ),
-                                child: const Text(Strings.clearRoute),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
+                          MarkerLayer(markers: markers),
                         ],
                       ),
-                    ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainer,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    Strings.routeSummaryTitle,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    hasRoute
+                        ? '${selectedFriend.name} · ${selectedFriend.location} · ${selectedFriend.distance}'
+                        : Strings.routeSummaryEmpty,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: () {
+                            _mapController.move(
+                              LatLng(currentLatitude, currentLongitude),
+                              14,
+                            );
+                          },
+                          child: const Text(Strings.centerLocation),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 130,
+                        height: 48,
+                        child: OutlinedButton(
+                          onPressed: hasRoute ? () {} : null,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.textPrimary,
+                            side: BorderSide(
+                              color: AppColors.outline.withAlpha(179),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                          ),
+                          child: const Text(Strings.clearRoute),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -155,8 +173,8 @@ class MapScreen extends StatelessWidget {
   }
 }
 
-class _MapMarker extends StatelessWidget {
-  const _MapMarker({required this.label, required this.color});
+class _MapPin extends StatelessWidget {
+  const _MapPin({required this.label, required this.color});
 
   final String label;
   final Color color;
@@ -164,29 +182,30 @@ class _MapMarker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 52,
-          height: 52,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: color.withAlpha(89),
+                color: color.withAlpha(90),
                 blurRadius: 12,
                 spreadRadius: 0,
               ),
             ],
           ),
-          child: const Icon(Icons.place, color: Colors.white, size: 28),
+          child: const Icon(Icons.place, color: Colors.white, size: 24),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: AppColors.surfaceContainer,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Text(
             label,

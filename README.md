@@ -1,45 +1,71 @@
 # Drunken Flutter
 
-A mobile-first Flutter prototype for friend tracking, map interaction, and mock messaging.
+A mobile-first Flutter prototype for late-night friend tracking, map interaction, and mock messaging. Built as a UI concept for social safety during evenings out - see where friends are, who's home safe, and quickly message or call.
 
-## Overview
+> [!WARNING]
+> Routes may draw incorrectly in Flutter web builds. The app works best on native targets (iOS/Android/desktop)
 
-This app is a lightweight prototype built around a dark purple/kiwi UI. It includes:
+## Prerequisites
 
-- friend location tracking on an OpenStreetMap-based map
-- direct message and call-style UI flows
-- a settings panel with tracking session controls and ghost mode
-- a mobile-first experience that is optimized for phone-sized screens
+You need Flutter installed. If you don't have it, follow the official setup guide:
 
-## Running the App
+https://docs.flutter.dev/get-started/install
 
-Install dependencies and run the app as usual:
+Verify it's available:
 
 ```bash
+flutter doctor
+```
+
+## Run
+
+Clone the repository and run the app:
+
+```bash
+git clone https://github.com/Jitreq/drunkenv2
+cd drunkenv2
 flutter pub get
 flutter run
 ```
 
-### Prerequisites
+> [!TIP]
+> For the best experience, run on a native device. Web builds (`flutter run -d chrome`) are supported but have known route rendering issues.
 
-This project requires Flutter. If Flutter is not installed, follow the official setup guide:
+## Stack
 
-https://docs.flutter.dev/install
+- Flutter SDK ^3.11.5
+- flutter_map with OpenStreetMap tiles
+- geolocator for device GPS
+- routing_engine (Valhalla) for dynamic route calculation
+- Custom dark theme
+- Hardcoded mock data for friends only
 
-Once installed, make sure `flutter` is available in your terminal.
+## Layout
 
-If you use a browser for web debugging, keep in mind that the app is intended for mobile layouts.
-
-## Web Browser View
-
-The web version scales to fill the browser width by default, which can make the UI look oversized on large screens.
-
-For the best results, use a mobile device frame such as **iPhone 17** in responsive design mode.
-
-This app is designed for phone-sized screens and is not fully tested on all desktop or unusual web resolutions.
+```
+lib/
+  main.dart               # Fixed viewport size, login/logout state
+  core/
+    strings.dart          # App text strings
+    theme/                # Dark theme setup
+  data/
+    mock_data.dart        # Hardcoded friends and default location fallback
+  screens/
+    login_screen.dart     # Mock login screen
+    root_shell.dart       # Bottom navigation with three tabs
+    home_screen.dart      # Map view with friend list
+    map_screen.dart       # Full screen map
+    chat_screen.dart      # Direct message UI
+    call_screen.dart      # Call style UI
+    settings_screen.dart  # Tracking controls and ghost mode
+```
 
 ## Notes
 
-- User GPS is attempted first and falls back to a hardcoded location if unavailable.
-- Friends are currently using hardcoded mock data.
-- The prototype uses Flutter widgets and a simple state-based UI rather than a full backend.
+- The app requests device GPS permission. If granted, it shows your actual location on the map and calculates routes from that position to friend destinations using Valhalla. If denied or unavailable, it falls back to a hardcoded default location.
+- Friend positions, names, and statuses are static mock data. No backend services are connected.
+- This is a UI prototype. No user accounts, authentication, or real friend tracking is implemented.
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file.

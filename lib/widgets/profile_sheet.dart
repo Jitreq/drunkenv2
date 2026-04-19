@@ -43,138 +43,145 @@ class ProfileSheet extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: const EdgeInsets.fromLTRB(24, 18, 24, 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 64,
-            height: 6,
-            decoration: BoxDecoration(
-              color: AppColors.outline.withAlpha(90),
-              borderRadius: BorderRadius.circular(3),
-            ),
-          ),
-          const SizedBox(height: 18),
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: avatarColor,
-            child: Text(
-              name.substring(0, 1),
-              style: const TextStyle(
-                color: AppColors.onPrimary,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.78,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: AppColors.outline.withAlpha(90),
+                  borderRadius: BorderRadius.circular(3),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: 18),
-          Text(
-            name,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 18),
-          _ProfileRow(label: 'Location', value: location),
-          const SizedBox(height: 10),
-          if (distance != null) ...[
-            _ProfileRow(label: 'Distance', value: distance!),
-            const SizedBox(height: 10),
-          ],
-          _ProfileRow(label: 'Status', value: status),
-          const SizedBox(height: 10),
-          _ProfileRow(label: 'Friends since', value: friendsSince),
-          const SizedBox(height: 10),
-          _ProfileRow(label: 'Email', value: email),
-          if (onCall != null || onMessage != null) ...[
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                if (onCall != null)
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: onCall,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.textPrimary,
-                        side: BorderSide(color: AppColors.outline),
-                        minimumSize: const Size.fromHeight(52),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                      ),
-                      icon: const Icon(Icons.call),
-                      label: const Text(Strings.callButtonLabel),
-                    ),
+              const SizedBox(height: 18),
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: avatarColor,
+                child: Text(
+                  name.substring(0, 1),
+                  style: const TextStyle(
+                    color: AppColors.onPrimary,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
-                if (onCall != null && onMessage != null)
-                  const SizedBox(width: 12),
-                if (onMessage != null)
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: onMessage,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.textPrimary,
-                        side: BorderSide(color: AppColors.outline),
-                        minimumSize: const Size.fromHeight(52),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                      ),
-                      icon: const Icon(Icons.message),
-                      label: const Text(Strings.dmButton),
-                    ),
-                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                name,
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                subtitle,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 18),
+              _ProfileRow(label: 'Location', value: location),
+              const SizedBox(height: 10),
+              if (distance != null) ...[
+                _ProfileRow(label: 'Distance', value: distance!),
+                const SizedBox(height: 10),
               ],
-            ),
-          ],
-          if (actionLabel != null && onAction != null) ...[
-            const SizedBox(height: 20),
-            FilledButton(
-              onPressed: onAction,
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.secondary,
-                foregroundColor: AppColors.onPrimary,
-                minimumSize: const Size.fromHeight(52),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
+              _ProfileRow(label: 'Status', value: status),
+              const SizedBox(height: 10),
+              _ProfileRow(label: 'Friends since', value: friendsSince),
+              const SizedBox(height: 10),
+              _ProfileRow(label: 'Email', value: email),
+              if (onCall != null || onMessage != null) ...[
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    if (onCall != null)
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: onCall,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.textPrimary,
+                            side: BorderSide(color: AppColors.outline),
+                            minimumSize: const Size.fromHeight(52),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                          ),
+                          icon: const Icon(Icons.call),
+                          label: const Text(Strings.callButtonLabel),
+                        ),
+                      ),
+                    if (onCall != null && onMessage != null)
+                      const SizedBox(width: 12),
+                    if (onMessage != null)
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: onMessage,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.textPrimary,
+                            side: BorderSide(color: AppColors.outline),
+                            minimumSize: const Size.fromHeight(52),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                          ),
+                          icon: const Icon(Icons.message),
+                          label: const Text(Strings.dmButton),
+                        ),
+                      ),
+                  ],
                 ),
-              ),
-              child: Text(actionLabel!),
-            ),
-          ],
-          if (onShowOnMap != null) ...[
-            const SizedBox(height: 20),
-            OutlinedButton.icon(
-              onPressed: onShowOnMap,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.textPrimary,
-                side: BorderSide(color: AppColors.outline),
-                minimumSize: const Size.fromHeight(52),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
+              ],
+              if (actionLabel != null && onAction != null) ...[
+                const SizedBox(height: 20),
+                FilledButton(
+                  onPressed: onAction,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.secondary,
+                    foregroundColor: AppColors.onPrimary,
+                    minimumSize: const Size.fromHeight(52),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  child: Text(actionLabel!),
                 ),
+              ],
+              if (onShowOnMap != null) ...[
+                const SizedBox(height: 20),
+                OutlinedButton.icon(
+                  onPressed: onShowOnMap,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: BorderSide(color: AppColors.outline),
+                    minimumSize: const Size.fromHeight(52),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  icon: const Icon(Icons.location_on),
+                  label: const Text('Show on map'),
+                ),
+              ],
+              const SizedBox(height: 20),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.onPrimary,
+                  minimumSize: const Size.fromHeight(52),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+                child: const Text('Close'),
               ),
-              icon: const Icon(Icons.location_on),
-              label: const Text('Show on map'),
-            ),
-          ],
-          const SizedBox(height: 20),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.onPrimary,
-              minimumSize: const Size.fromHeight(52),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-              ),
-            ),
-            child: const Text('Close'),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

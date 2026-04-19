@@ -61,6 +61,8 @@ class Strings {
   static const routeSummaryTitle = 'Route summary';
   static const routeSummaryEmpty =
       'Select a friend from Home to view a route.';
+  static const routeSummaryLoading =
+      'Requesting walking route from Valhalla...';
   static const youLabel = 'You';
   static const centerLocation = 'Center location';
   static const clearRoute = 'Clear route';

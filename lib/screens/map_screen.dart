@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -8,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import '../core/strings.dart';
 import '../core/theme/app_colors.dart';
 import '../data/mock_data.dart';
+import '../services/valhalla_routing_service.dart';
 import '../widgets/profile_sheet.dart';
 
 class MapScreen extends StatefulWidget {
@@ -46,12 +45,12 @@ class _MapScreenState extends State<MapScreen> {
   double _currentLongitude = currentLongitude;
   late LatLng _mapCenter;
   double _mapZoom = 14;
+  final ValhallaRoutingService _routingService = ValhallaRoutingService();
+  List<LatLng> _routePoints = [];
+  double? _routeDistanceMeters;
 
   Friend? get _activeFriend {
-    if (widget.trackingEnabled && widget.trackedFriend != null) {
-      return widget.trackedFriend;
-    }
-    return widget.selectedFriend ?? widget.trackedFriend;
+    return widget.trackedFriend ?? widget.selectedFriend;
   }
 
   @override
@@ -88,6 +87,7 @@ class _MapScreenState extends State<MapScreen> {
         _currentLongitude = position.longitude;
         _mapCenter = LatLng(position.latitude, position.longitude);
       });
+      await _updateRouteForActiveFriend();
     } catch (_) {
       widget.onGpsStatusChanged?.call(false);
       // Fallback to the hard-coded location if GPS is unavailable.
@@ -102,21 +102,6 @@ class _MapScreenState extends State<MapScreen> {
     _mapController.move(midpoint, 13);
   }
 
-  double _distanceKm(Friend friend) {
-    const earthRadiusKm = 6371.0;
-    final lat1 = _currentLatitude * math.pi / 180;
-    final lon1 = _currentLongitude * math.pi / 180;
-    final lat2 = friend.latitude * math.pi / 180;
-    final lon2 = friend.longitude * math.pi / 180;
-    final dlat = lat2 - lat1;
-    final dlon = lon2 - lon1;
-    final a = math.sin(dlat / 2) * math.sin(dlat / 2) +
-        math.cos(lat1) * math.cos(lat2) *
-        math.sin(dlon / 2) * math.sin(dlon / 2);
-    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-    return earthRadiusKm * c;
-  }
-
   String _formatDistance(double km) {
     if (km < 1.0) {
       return '${(km * 1000).round()} m';
@@ -124,7 +109,46 @@ class _MapScreenState extends State<MapScreen> {
     return '${km.toStringAsFixed(1)} km';
   }
 
+  bool get _canFetchRoute {
+    final friend = _activeFriend;
+    return friend != null && friend.sharesLocation &&
+        (widget.trackingEnabled || widget.trackedFriend != null);
+  }
+
+  Future<void> _updateRouteForActiveFriend() async {
+    if (!_canFetchRoute) {
+      if (_routePoints.isNotEmpty || _routeDistanceMeters != null) {
+        setState(() {
+          _routePoints = [];
+          _routeDistanceMeters = null;
+        });
+      }
+      return;
+    }
+
+    final friend = _activeFriend!;
+    setState(() {
+      _routePoints = [];
+    });
+
+    final result = await _routingService.getWalkingRoute(
+      origin: LatLng(_currentLatitude, _currentLongitude),
+      destination: LatLng(friend.latitude, friend.longitude),
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _routePoints = result?.routePoints ?? [];
+      _routeDistanceMeters = result?.distanceMeters;
+    });
+  }
+
   void _clearRoute() {
+    setState(() {
+      _routePoints = [];
+      _routeDistanceMeters = null;
+    });
     widget.onClearRoute();
   }
 
@@ -166,12 +190,29 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void didUpdateWidget(covariant MapScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.trackingEnabled && widget.selectedFriend != null &&
-        widget.selectedFriend != oldWidget.selectedFriend) {
+    final oldActiveFriend = oldWidget.trackedFriend ?? oldWidget.selectedFriend;
+    final newActiveFriend = _activeFriend;
+
+    if (newActiveFriend != null && newActiveFriend != oldActiveFriend) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _centerOnFriend(widget.selectedFriend!);
+        _centerOnFriend(newActiveFriend);
       });
     }
+
+    if (widget.selectedFriend != oldWidget.selectedFriend ||
+        widget.trackedFriend != oldWidget.trackedFriend ||
+        widget.trackingEnabled != oldWidget.trackingEnabled ||
+        widget.ghostModeEnabled != oldWidget.ghostModeEnabled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _updateRouteForActiveFriend();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _routingService.dispose();
+    super.dispose();
   }
 
   @override
@@ -259,20 +300,13 @@ class _MapScreenState extends State<MapScreen> {
                                     'fi.lappeenranta.drunken_flutter',
                                 backgroundColor: const Color(0xFF181E24),
                               ),
-                              if (canShowRoute)
+                              if (canShowRoute && _routePoints.isNotEmpty)
                                 PolylineLayer(
                                   polylines: [
                                     Polyline(
-                                      points: [
-                                        LatLng(_currentLatitude, _currentLongitude),
-                                        LatLng(
-                                          selectedFriend.latitude,
-                                          selectedFriend.longitude,
-                                        ),
-                                      ],
-                                      strokeWidth: 4,
+                                      points: _routePoints,
+                                      strokeWidth: 5,
                                       color: AppColors.secondary,
-                                      isDotted: true,
                                     ),
                                   ],
                                 ),
@@ -342,16 +376,16 @@ class _MapScreenState extends State<MapScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (widget.trackingEnabled) ...[
+                  if (canShowRoute) ...[
                     Text(
                       Strings.routeSummaryTitle,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      canShowRoute
-                          ? '${selectedFriend.name} · ${selectedFriend.location} · ${_formatDistance(_distanceKm(selectedFriend))}'
-                          : Strings.routeSummaryEmpty,
+                      _routePoints.isNotEmpty && _routeDistanceMeters != null
+                          ? '${selectedFriend.name} · ${selectedFriend.location} · ${_formatDistance(_routeDistanceMeters! / 1000.0)}'
+                          : Strings.routeSummaryLoading,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ] else if (widget.ghostModeEnabled) ...[

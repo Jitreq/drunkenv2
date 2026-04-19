@@ -159,6 +159,6 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@v1
         with:
-          files: release-assets/*
+          files: release-assets/**/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -11,6 +11,7 @@ class ProfileScreen extends StatefulWidget {
     required this.ghostModeEnabled,
     required this.trackingDurationHours,
     required this.sessionEndTime,
+    required this.gpsAvailable,
     required this.onDurationChanged,
     required this.onStartTracking,
     required this.onEnableGhostMode,
@@ -20,6 +21,7 @@ class ProfileScreen extends StatefulWidget {
   final VoidCallback onLogout;
   final bool trackingEnabled;
   final bool ghostModeEnabled;
+  final bool gpsAvailable;
   final int trackingDurationHours;
   final DateTime? sessionEndTime;
   final ValueChanged<int> onDurationChanged;
@@ -99,6 +101,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Text(
                             Strings.profileStatus,
                             style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.gps_fixed,
+                                size: 16,
+                                color: widget.gpsAvailable
+                                    ? AppColors.success
+                                    : AppColors.error,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                widget.gpsAvailable
+                                    ? Strings.gpsWorking
+                                    : Strings.gpsFallback,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium,
+                              ),
+                            ],
                           ),
                         ],
                       ),

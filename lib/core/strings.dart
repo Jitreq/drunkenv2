@@ -3,16 +3,15 @@ class Strings {
 
   static const appTitle = 'Drunken Friend Tracker';
 
-  static const loginWelcome = 'Welcome to the prototype';
-  static const loginSubtitle = 'Use mock locations and friend tracking.';
+  static const loginWelcome = 'Welcome back';
+  static const loginSubtitle = 'Sign in to access your friend map.';
   static const emailLabel = 'Email';
   static const emailHint = 'name@example.com';
   static const passwordLabel = 'Password';
   static const passwordHint = '••••••••';
   static const loginButton = 'Sign in';
   static const tryOffline = 'Try without signing in';
-  static const loginError =
-      'Check email and password. Prototype uses mock login.';
+  static const loginError = 'Check email and password.';
 
   static const homeTitle = 'Home';
   static const homeSubtitle = 'Track friends and stay aware of locations.';
@@ -24,11 +23,11 @@ class Strings {
 
   static const settingsTitle = 'Settings';
   static const settingsSubtitle = 'Manage account settings and privacy.';
-  static const profileName = 'Anna';
-  static const profileStatus = 'Prototype account · Sharing location';
+  static const profileName = 'Juho';
+  static const profileStatus = 'Sharing location';
   static const profileLocationTitle = 'Lappeenranta';
   static const profileFriendsSince = 'Friends since';
-  static const profileEmail = 'anna@example.me';
+  static const profileEmail = 'juho@example.me';
   static const shareLocationTitle = 'Share location';
   static const shareLocationSubtitle = 'Allow friends to see your location.';
   static const visibleToFriendsTitle = 'Visible to friends';
@@ -36,7 +35,7 @@ class Strings {
   static const generalTitle = 'General';
   static const locationSharing = 'Location sharing';
   static const locationSharingSubtitle =
-      'Your location is not stored in mock mode.';
+      'Share your current location with friends.';
   static const notifications = 'Notifications';
   static const notificationsSubtitle = 'Receive alerts about friend activity.';  static const trackingDurationTitle = 'Tracking session';
   static const trackingDurationSubtitle =
@@ -58,21 +57,21 @@ class Strings {
 
   static const mapTitle = 'Map';
   static const mapSubtitle =
-      'View friend locations and mock routes. Select a friend from Home.';
+      'View friend locations and your current route. Select someone from Home.';
   static const routeSummaryTitle = 'Route summary';
   static const routeSummaryEmpty =
-      'Select a friend from Home to view a mock route.';
+      'Select a friend from Home to view a route.';
   static const youLabel = 'You';
   static const centerLocation = 'Center location';
   static const clearRoute = 'Clear route';
 
   static const callTitle = 'Call';
-  static const callSubtitle = 'Mock calling session with your friend.';
+  static const callSubtitle = 'Calling your friend.';
   static const callingLabel = 'Calling';
   static const endCall = 'End call';
 
   static const chatTitle = 'Messages';
-  static const chatSubtitle = 'Direct message mock conversation.';
+  static const chatSubtitle = 'Send a quick message to your friend.';
   static const messagePlaceholder = 'Write a message...';
   static const sendMessage = 'Send';
 
@@ -81,4 +80,7 @@ class Strings {
   static const mapButton = 'Map';
   static const sharingLocation = 'Sharing location';
   static const hiddenLocation = 'Hidden';
+  static const gpsStatusTitle = 'GPS status';
+  static const gpsWorking = 'GPS working';
+  static const gpsFallback = 'Fallback active';
 }

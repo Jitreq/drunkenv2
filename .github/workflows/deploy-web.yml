@@ -35,7 +35,15 @@ jobs:
         run: fvm flutter pub get
 
       - name: Build web
-        run: fvm flutter build web --release --base-href /
+        run: |
+          repo_name="${GITHUB_REPOSITORY##*/}"
+          if [ "$repo_name" = "jitreq.github.io" ]; then
+            base_href="/"
+          else
+            base_href="/$repo_name/"
+          fi
+          echo "Building web with base-href=$base_href"
+          fvm flutter build web --release --base-href "$base_href"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

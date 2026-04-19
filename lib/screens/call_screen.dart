@@ -24,39 +24,47 @@ class CallScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back_ios_new),
                     color: AppColors.textPrimary,
                     onPressed: () => Navigator.of(context).pop(),
                   ),
-                  Text(
-                    Strings.callTitle,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  if (onShowOnMap != null)
-                    IconButton(
-                      icon: const Icon(Icons.location_on),
-                      color: AppColors.textPrimary,
-                      onPressed: () {
-                        onShowOnMap!();
-                        Navigator.of(context).popUntil((route) => route.isFirst);
-                      },
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        Strings.callTitle,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                     ),
-                  IconButton(
-                    icon: const Icon(Icons.message),
-                    color: AppColors.textPrimary,
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => ChatScreen(
-                            friendName: friendName,
-                            onShowOnMap: onShowOnMap,
-                          ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (onShowOnMap != null)
+                        IconButton(
+                          icon: const Icon(Icons.location_on),
+                          color: AppColors.textPrimary,
+                          onPressed: () {
+                            onShowOnMap!();
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          },
                         ),
-                      );
-                    },
+                      IconButton(
+                        icon: const Icon(Icons.message),
+                        color: AppColors.textPrimary,
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ChatScreen(
+                                friendName: friendName,
+                                onShowOnMap: onShowOnMap,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),

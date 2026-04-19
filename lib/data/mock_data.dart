@@ -51,11 +51,11 @@ class Friend {
 }
 
 const currentUser = UserProfile(
-  name: 'Anna',
+  name: 'Juho',
   location: 'Lappeenranta',
-  status: 'Prototype account · Sharing location',
+  status: 'Sharing location',
   friendsSince: 'Friends since 2022',
-  email: 'anna@example.me',
+  email: 'juho@example.me',
 );
 
 const currentLocationName = 'Lappeenranta';
@@ -65,7 +65,7 @@ const currentLongitude = 28.1446;
 
 const friends = [
   Friend(
-    name: 'Emilia',
+    name: 'Taneli',
     location: 'Downtown',
     sharesLocation: true,
     lastSeen: '1 min ago',
@@ -92,7 +92,7 @@ const friends = [
     ],
   ),
   Friend(
-    name: 'Mikko',
+    name: 'Eeri',
     location: 'Night Bar',
     sharesLocation: false,
     lastSeen: '12 min ago',
@@ -119,7 +119,7 @@ const friends = [
     ],
   ),
   Friend(
-    name: 'Sara',
+    name: 'Allu',
     location: 'Beach',
     sharesLocation: true,
     lastSeen: '3 min ago',
@@ -142,6 +142,33 @@ const friends = [
         text: 'Come over and I will save you a spot.',
         isMe: false,
         time: '7:56 PM',
+      ),
+    ],
+  ),
+  Friend(
+    name: 'Aleksi',
+    location: 'City Park',
+    sharesLocation: true,
+    lastSeen: '5 min ago',
+    distance: '1.0 km',
+    latitude: 61.0600,
+    longitude: 28.1505,
+    friendsSince: 'Friends since 2024',
+    chatHistory: [
+      ChatMessage(
+        text: 'I can meet in 10 minutes.',
+        isMe: false,
+        time: '9:30 PM',
+      ),
+      ChatMessage(
+        text: 'Sounds good, see you soon.',
+        isMe: true,
+        time: '9:31 PM',
+      ),
+      ChatMessage(
+        text: 'Bring your jacket, it is chilly.',
+        isMe: false,
+        time: '9:32 PM',
       ),
     ],
   ),

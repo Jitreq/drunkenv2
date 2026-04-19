@@ -9,9 +9,16 @@ import 'call_screen.dart';
 import 'chat_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, required this.onShowFriendOnMap});
+  const HomeScreen({
+    super.key,
+    required this.trackedFriend,
+    required this.onShowFriendOnMap,
+    required this.onTrackFriend,
+  });
 
+  final Friend? trackedFriend;
   final ValueChanged<Friend> onShowFriendOnMap;
+  final ValueChanged<Friend> onTrackFriend;
 
   void _showFriendProfile(BuildContext context, Friend friend) {
     showModalBottomSheet(
@@ -27,6 +34,11 @@ class HomeScreen extends StatelessWidget {
         friendsSince: friend.friendsSince,
         email: '${friend.name.toLowerCase()}@example.me',
         avatarColor: AppColors.primaryContainer,
+        actionLabel: trackedFriend == friend ? 'Untrack friend' : 'Track friend',
+        onAction: () {
+          Navigator.of(context).pop();
+          onTrackFriend(friend);
+        },
         onShowOnMap: friend.sharesLocation
             ? () {
                 Navigator.of(context).pop();

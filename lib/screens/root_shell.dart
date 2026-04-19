@@ -22,8 +22,10 @@ class RootShell extends StatefulWidget {
 class _RootShellState extends State<RootShell> {
   int selectedIndex = 1;
   Friend? selectedFriend;
+  Friend? trackedFriend;
   bool trackingEnabled = false;
   bool ghostModeEnabled = false;
+  bool gpsAvailable = false;
   int trackingHours = 6;
   DateTime? sessionEndTime;
   Timer? _trackingTimer;
@@ -37,6 +39,17 @@ class _RootShellState extends State<RootShell> {
   void _showFriendOnMap(Friend friend) {
     setState(() {
       selectedFriend = friend;
+      selectedIndex = 1;
+    });
+  }
+
+  void _toggleTracking(Friend friend) {
+    setState(() {
+      if (trackedFriend == friend) {
+        trackedFriend = null;
+      } else {
+        trackedFriend = friend;
+      }
       selectedIndex = 1;
     });
   }
@@ -103,6 +116,13 @@ class _RootShellState extends State<RootShell> {
     });
   }
 
+  void _updateGpsStatus(bool available) {
+    if (gpsAvailable == available) return;
+    setState(() {
+      gpsAvailable = available;
+    });
+  }
+
   String _trackingRemainingLabel() {
     if (sessionEndTime == null) return '';
     final remaining = sessionEndTime!.difference(DateTime.now());
@@ -144,6 +164,7 @@ class _RootShellState extends State<RootShell> {
                 onLogout: widget.onLogout,
                 trackingEnabled: trackingEnabled,
                 ghostModeEnabled: ghostModeEnabled,
+                gpsAvailable: gpsAvailable,
                 trackingDurationHours: trackingHours,
                 sessionEndTime: sessionEndTime,
                 onDurationChanged: _updateTrackingHours,
@@ -153,14 +174,21 @@ class _RootShellState extends State<RootShell> {
               ),
               MapScreen(
                 selectedFriend: selectedFriend,
+                trackedFriend: trackedFriend,
                 trackingEnabled: trackingEnabled,
                 ghostModeEnabled: ghostModeEnabled,
                 onOpenSettings: _openSettings,
                 onDisableGhostMode: _disableGhostMode,
                 onClearRoute: _clearRoute,
                 onShowFriendOnMap: _showFriendOnMap,
+                onTrackFriend: _toggleTracking,
+                onGpsStatusChanged: _updateGpsStatus,
               ),
-              HomeScreen(onShowFriendOnMap: _showFriendOnMap),
+              HomeScreen(
+                trackedFriend: trackedFriend,
+                onShowFriendOnMap: _showFriendOnMap,
+                onTrackFriend: _toggleTracking,
+              ),
             ],
           ),
           if (trackingEnabled && sessionEndTime != null)

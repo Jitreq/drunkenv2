@@ -123,12 +123,17 @@ jobs:
         if: matrix.platform == 'windows'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Path release-artifacts | Out-Null
-          $releasePath = Join-Path $PWD 'build/windows/runner/Release'
-          if (-Not (Test-Path $releasePath)) {
-            throw "Windows release path not found: $releasePath"
+          New-Item -ItemType Directory -Path release-artifacts -Force | Out-Null
+          $releasePath = Get-ChildItem -Path "$PWD\build\windows" -Directory -Recurse -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -match 'Release$' } |
+            Select-Object -First 1
+          if (-Not $releasePath) {
+            Write-Host "Windows release directory not found under build/windows"
+            Get-ChildItem -Path "$PWD\build\windows" -Directory -Recurse | Select-Object FullName
+            throw "Windows release path not found"
           }
-          Compress-Archive -Path (Join-Path $releasePath '*') -DestinationPath "$PWD\release-artifacts\windows-release.zip"
+          Write-Host "Found Windows release directory: $($releasePath.FullName)"
+          Compress-Archive -Path "$($releasePath.FullName)\*" -DestinationPath "$PWD\release-artifacts\windows-release.zip"
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4

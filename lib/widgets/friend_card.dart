@@ -29,8 +29,13 @@ class FriendCard extends StatelessWidget {
         : _StatusPill(text: Strings.hiddenLocation, color: AppColors.outline);
 
     return Card(
+      color: AppColors.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(color: AppColors.outline.withAlpha(0x66)),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(24),
         onTap: onProfile,
         child: Padding(
           padding: const EdgeInsets.all(18),
@@ -40,13 +45,14 @@ class FriendCard extends StatelessWidget {
             Row(
               children: [
                 CircleAvatar(
-                  radius: 24,
-                  backgroundColor: AppColors.primaryContainer,
+                  radius: 28,
+                  backgroundColor: AppColors.primary,
                   child: Text(
                     friend.name.substring(0, 1),
                     style: const TextStyle(
                       color: AppColors.onPrimary,
                       fontWeight: FontWeight.w700,
+                      fontSize: 20,
                     ),
                   ),
                 ),
@@ -74,26 +80,49 @@ class FriendCard extends StatelessWidget {
             const SizedBox(height: 16),
             statusWidget,
             const SizedBox(height: 16),
-            Row(
-              children: [
-                _ActionButton(
-                  label: Strings.callButton,
-                  icon: Icons.phone,
-                  onPressed: onCall,
-                ),
-                const SizedBox(width: 8),
-                _ActionButton(
-                  label: Strings.messageButton,
-                  icon: Icons.message,
-                  onPressed: onMessage,
-                ),
-                const SizedBox(width: 8),
-                _ActionButton(
-                  label: Strings.mapButton,
-                  icon: Icons.map,
-                  onPressed: onShowMap,
-                ),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: 0,
+                        maxWidth: constraints.maxWidth,
+                      ),
+                      child: _ActionButton(
+                        label: Strings.callButton,
+                        icon: Icons.phone,
+                        onPressed: onCall,
+                      ),
+                    ),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: 0,
+                        maxWidth: constraints.maxWidth,
+                      ),
+                      child: _ActionButton(
+                        label: Strings.messageButton,
+                        icon: Icons.message,
+                        onPressed: onMessage,
+                      ),
+                    ),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: 0,
+                        maxWidth: constraints.maxWidth,
+                      ),
+                      child: _ActionButton(
+                        label: Strings.mapButton,
+                        icon: Icons.map,
+                        onPressed: onShowMap,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -112,16 +141,17 @@ class _StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withAlpha(43),
-        borderRadius: BorderRadius.circular(14),
+        color: color.withAlpha(0x2E),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withAlpha(0x4D)),
       ),
       child: Text(
         text,
         style: TextStyle(
           color: color,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           fontSize: 13,
         ),
       ),
@@ -142,28 +172,34 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: FilledButton(
-        onPressed: onPressed,
-        style: FilledButton.styleFrom(
-          backgroundColor: AppColors.surfaceVariant,
-          foregroundColor: AppColors.textPrimary,
-          minimumSize: const Size.fromHeight(44),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
+    return FilledButton(
+      onPressed: onPressed,
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.surfaceVariant,
+        foregroundColor: AppColors.textPrimary,
+        minimumSize: const Size(0, 48),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 18),
-            const SizedBox(width: 8),
-            Text(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        elevation: 0,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
               label,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

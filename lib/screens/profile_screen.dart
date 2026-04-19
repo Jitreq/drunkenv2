@@ -8,33 +8,28 @@ class ProfileScreen extends StatefulWidget {
     super.key,
     required this.onLogout,
     required this.trackingEnabled,
-    required this.ghostModeEnabled,
     required this.trackingDurationHours,
     required this.sessionEndTime,
     required this.gpsAvailable,
     required this.onDurationChanged,
     required this.onStartTracking,
-    required this.onEnableGhostMode,
-    required this.onDisableGhostMode,
+    required this.onShareLocationChanged,
   });
 
   final VoidCallback onLogout;
   final bool trackingEnabled;
-  final bool ghostModeEnabled;
   final bool gpsAvailable;
   final int trackingDurationHours;
   final DateTime? sessionEndTime;
   final ValueChanged<int> onDurationChanged;
   final VoidCallback onStartTracking;
-  final VoidCallback onEnableGhostMode;
-  final VoidCallback onDisableGhostMode;
+  final ValueChanged<bool> onShareLocationChanged;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool shareLocation = true;
   bool visibleToFriends = true;
   late int selectedHours;
 
@@ -147,38 +142,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 18),
-                    Row(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('6h', style: Theme.of(context).textTheme.bodyMedium),
-                        Expanded(
-                          child: Slider(
-                            activeColor: AppColors.secondary,
-                            inactiveColor: AppColors.outline.withAlpha(140),
-                            value: selectedHours.toDouble(),
-                            min: 6,
-                            max: 24,
-                            divisions: 18,
-                            label: '${selectedHours}h',
-                            onChanged: widget.trackingEnabled || widget.ghostModeEnabled
-                                ? null
-                                : (value) {
-                                    setState(() {
-                                      selectedHours = value.round();
-                                    });
-                                    widget.onDurationChanged(selectedHours);
-                                  },
-                          ),
+                        _DurationControl(
+                          value: selectedHours,
+                          onChanged: widget.trackingEnabled
+                              ? null
+                              : (value) {
+                                  setState(() {
+                                    selectedHours = value.clamp(0, 24);
+                                  });
+                                  widget.onDurationChanged(selectedHours);
+                                },
                         ),
-                        Text('24h', style: Theme.of(context).textTheme.bodyMedium),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${selectedHours}h',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    if (widget.trackingEnabled && !widget.ghostModeEnabled)
-                      FilledButton(
-                        onPressed: widget.onEnableGhostMode,
-                        child: const Text(Strings.enableGhostModeButton),
-                      )
-                    else if (widget.ghostModeEnabled)
+                    if (widget.trackingEnabled)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -196,12 +182,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  Strings.ghostModeActiveLabel,
+                                  Strings.trackingActiveLabel,
                                   style: Theme.of(context).textTheme.titleLarge,
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  Strings.ghostModeActiveSubtitle,
+                                  Strings.shareLocationActiveSubtitle,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                                const SizedBox(height: 14),
+                                Text(
+                                  '${Strings.trackingEndsIn} ${widget.sessionEndTime == null ? '0m' : _trackingRemainingLabel()}',
                                   style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                               ],
@@ -209,8 +200,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 14),
                           FilledButton(
-                            onPressed: widget.onDisableGhostMode,
-                            child: const Text(Strings.disableGhostModeButton),
+                            onPressed: () => widget.onShareLocationChanged(false),
+                            child: const Text(Strings.stopSharingButton),
                           ),
                         ],
                       )
@@ -228,10 +219,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   SwitchListTile(
-                    value: shareLocation,
-                    onChanged: (value) => setState(() => shareLocation = value),
+                    value: widget.trackingEnabled,
+                    onChanged: widget.trackingEnabled
+                        ? (value) => widget.onShareLocationChanged(value)
+                        : null,
                     title: const Text(Strings.shareLocationTitle),
-                    subtitle: const Text(Strings.shareLocationSubtitle),
+                    subtitle: Text(
+                      widget.trackingEnabled
+                          ? Strings.shareLocationActiveSubtitle
+                          : Strings.shareLocationLockedSubtitle,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
                     ),
@@ -300,6 +297,80 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  String _trackingRemainingLabel() {
+    if (widget.sessionEndTime == null) return '0m';
+    final remaining = widget.sessionEndTime!.difference(DateTime.now());
+    if (remaining.isNegative) return '0m';
+    if (remaining.inHours >= 1) {
+      return '${remaining.inHours}h ${remaining.inMinutes.remainder(60)}m';
+    }
+    return '${remaining.inMinutes}m';
+  }
+}
+
+class _DurationControl extends StatelessWidget {
+  const _DurationControl({required this.value, required this.onChanged});
+
+  final int value;
+  final ValueChanged<int>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FilledButton(
+              onPressed: onChanged == null ? null : () => onChanged!((value - 1).clamp(0, 24)),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.surfaceVariant,
+                foregroundColor: AppColors.textPrimary,
+                minimumSize: const Size(44, 44),
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(0),
+              ),
+              child: const Icon(Icons.remove, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Flexible(
+              fit: FlexFit.loose,
+              child: Slider(
+                min: 0,
+                max: 24,
+                divisions: 24,
+                value: value.toDouble(),
+                activeColor: AppColors.secondary,
+                inactiveColor: AppColors.outline.withAlpha(140),
+                onChanged: onChanged == null
+                    ? null
+                    : (double newValue) => onChanged!(newValue.round()),
+              ),
+            ),
+            const SizedBox(width: 12),
+            FilledButton(
+              onPressed: onChanged == null ? null : () => onChanged!((value + 1).clamp(0, 24)),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.surfaceVariant,
+                foregroundColor: AppColors.textPrimary,
+                minimumSize: const Size(44, 44),
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(0),
+              ),
+              child: const Icon(Icons.add, size: 20),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          Strings.trackingDurationControlHint,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
     );
   }
 }

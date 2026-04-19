@@ -4,16 +4,21 @@ import '../core/strings.dart';
 import '../core/theme/app_colors.dart';
 import '../data/mock_data.dart';
 import '../widgets/profile_sheet.dart';
+import '../widgets/xr_app_bar.dart';
 import 'call_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({
     super.key,
     required this.friendName,
+    required this.trackingEnabled,
+    required this.sessionEndTime,
     this.onShowOnMap,
   });
 
   final String friendName;
+  final bool trackingEnabled;
+  final DateTime? sessionEndTime;
   final VoidCallback? onShowOnMap;
 
   @override
@@ -77,40 +82,44 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
+  String _trackingRemainingLabel() {
+    if (widget.sessionEndTime == null) return '';
+    final remaining = widget.sessionEndTime!.difference(DateTime.now());
+    if (remaining.isNegative) return '0m';
+    if (remaining.inHours >= 1) {
+      return '${remaining.inHours}h ${remaining.inMinutes.remainder(60)}m';
+    }
+    return '${remaining.inMinutes}m';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text('${Strings.chatTitle} · ${widget.friendName}'),
-        backgroundColor: AppColors.surfaceContainer,
-        surfaceTintColor: Colors.transparent,
+      appBar: XrAppBar(
+        title: '${Strings.chatTitle} · ${widget.friendName}',
         actions: [
-          if (widget.onShowOnMap != null)
-            IconButton(
-              icon: const Icon(Icons.location_on),
-              onPressed: () {
-                widget.onShowOnMap!();
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              },
-            ),
-          IconButton(
-            icon: const Icon(Icons.call),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => CallScreen(
-                    friendName: widget.friendName,
-                    onShowOnMap: widget.onShowOnMap,
-                  ),
+          if (widget.trackingEnabled && widget.sessionEndTime != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainer.withValues(alpha: 0xE6),
+                  borderRadius: BorderRadius.circular(18),
                 ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: _showFriendProfile,
-          ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.timer, size: 16, color: AppColors.secondary),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${Strings.trackingEndsIn} ${_trackingRemainingLabel()}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
       body: SafeArea(
@@ -123,6 +132,26 @@ class _ChatScreenState extends State<ChatScreen> {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _ChatActionRow(
+                onShowOnMap: widget.onShowOnMap,
+                onCall: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CallScreen(
+                        friendName: widget.friendName,
+                        trackingEnabled: widget.trackingEnabled,
+                        sessionEndTime: widget.sessionEndTime,
+                        onShowOnMap: widget.onShowOnMap,
+                      ),
+                    ),
+                  );
+                },
+                onProfile: _showFriendProfile,
+              ),
+            ),
+            const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -136,22 +165,23 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: Container(
                       margin: const EdgeInsets.symmetric(vertical: 6),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
+                        horizontal: 18,
+                        vertical: 16,
                       ),
-                      constraints: const BoxConstraints(maxWidth: 280),
+                      constraints: const BoxConstraints(maxWidth: 300),
                       decoration: BoxDecoration(
                         color: message.isMe
-                            ? AppColors.secondary
-                            : AppColors.surfaceContainer,
-                        borderRadius: BorderRadius.only(
-                          topLeft: const Radius.circular(18),
-                          topRight: const Radius.circular(18),
-                          bottomLeft: Radius.circular(
-                              message.isMe ? 18 : 4),
-                          bottomRight: Radius.circular(
-                              message.isMe ? 4 : 18),
-                        ),
+                            ? AppColors.primaryContainer
+                            : AppColors.surfaceContainerHigh,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          if (message.isMe)
+                            BoxShadow(
+                              color: AppColors.primary.withAlpha(0x24),
+                              blurRadius: 14,
+                              offset: const Offset(0, 5),
+                            ),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: message.isMe
@@ -162,8 +192,10 @@ class _ChatScreenState extends State<ChatScreen> {
                             message.text,
                             style: TextStyle(
                               color: message.isMe
-                                  ? AppColors.onSecondary
-                                  : AppColors.textPrimary,
+                                  ? AppColors.onPrimary
+                                  : AppColors.onSurface,
+                              fontSize: 15,
+                              height: 1.4,
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -185,11 +217,11 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
-                color: AppColors.surfaceContainer,
+                color: AppColors.surfaceContainerHigh,
                 borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24),
+                  top: Radius.circular(28),
                 ),
               ),
               child: Row(
@@ -197,21 +229,108 @@ class _ChatScreenState extends State<ChatScreen> {
                   Expanded(
                     child: TextField(
                       controller: _controller,
-                      style: const TextStyle(color: AppColors.textPrimary),
-                      decoration: const InputDecoration(
+                      style: const TextStyle(color: AppColors.onSurface),
+                      decoration: InputDecoration(
                         hintText: Strings.messagePlaceholder,
-                        border: InputBorder.none,
+                        hintStyle: TextStyle(color: AppColors.onSurfaceVariant),
+                        filled: true,
+                        fillColor: AppColors.surfaceVariant,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 14,
+                        ),
                       ),
                     ),
                   ),
+                  const SizedBox(width: 12),
                   FilledButton(
                     onPressed: _sendMessage,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.onPrimary,
+                      minimumSize: const Size(92, 52),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                    ),
                     child: const Text(Strings.sendMessage),
                   ),
                 ],
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChatActionRow extends StatelessWidget {
+  const _ChatActionRow({
+    required this.onShowOnMap,
+    required this.onCall,
+    required this.onProfile,
+  });
+
+  final VoidCallback? onShowOnMap;
+  final VoidCallback onCall;
+  final VoidCallback onProfile;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      alignment: WrapAlignment.center,
+      children: [
+        if (onShowOnMap != null)
+          _ChatActionButton(
+            icon: Icons.location_on,
+            label: Strings.mapButton,
+            onPressed: onShowOnMap!,
+          ),
+        _ChatActionButton(
+          icon: Icons.call,
+          label: Strings.callButton,
+          onPressed: onCall,
+        ),
+        _ChatActionButton(
+          icon: Icons.person,
+          label: 'Profile',
+          onPressed: onProfile,
+        ),
+      ],
+    );
+  }
+}
+
+class _ChatActionButton extends StatelessWidget {
+  const _ChatActionButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18),
+      label: Text(label),
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.surfaceVariant,
+        foregroundColor: AppColors.textPrimary,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
         ),
       ),
     );

@@ -24,7 +24,6 @@ class _RootShellState extends State<RootShell> {
   Friend? selectedFriend;
   Friend? trackedFriend;
   bool trackingEnabled = false;
-  bool ghostModeEnabled = false;
   bool gpsAvailable = false;
   int trackingHours = 6;
   DateTime? sessionEndTime;
@@ -70,7 +69,6 @@ class _RootShellState extends State<RootShell> {
     _trackingTimer?.cancel();
     setState(() {
       trackingEnabled = true;
-      ghostModeEnabled = false;
       sessionEndTime = DateTime.now().add(Duration(hours: trackingHours));
     });
     _trackingTimer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -91,22 +89,6 @@ class _RootShellState extends State<RootShell> {
     setState(() {
       trackingEnabled = false;
       sessionEndTime = null;
-    });
-  }
-
-  void _enableGhostMode() {
-    _trackingTimer?.cancel();
-    setState(() {
-      trackingEnabled = false;
-      ghostModeEnabled = true;
-      sessionEndTime = null;
-      selectedFriend = null;
-    });
-  }
-
-  void _disableGhostMode() {
-    setState(() {
-      ghostModeEnabled = false;
     });
   }
 
@@ -152,8 +134,35 @@ class _RootShellState extends State<RootShell> {
       backgroundColor: AppColors.background,
       appBar: XrAppBar(
         title: pageTitles[selectedIndex],
-        trailing: Icons.notifications,
-        trailingTap: _showNotifications,
+        actions: [
+          if (trackingEnabled && sessionEndTime != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainer.withValues(alpha: 0xE6),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppColors.outline),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.timer, size: 16, color: AppColors.secondary),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${Strings.trackingEndsIn} ${_trackingRemainingLabel()}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          IconButton(
+            icon: const Icon(Icons.notifications, color: AppColors.textPrimary),
+            onPressed: _showNotifications,
+          ),
+        ],
       ),
       body: Stack(
         fit: StackFit.expand,
@@ -164,22 +173,22 @@ class _RootShellState extends State<RootShell> {
               ProfileScreen(
                 onLogout: widget.onLogout,
                 trackingEnabled: trackingEnabled,
-                ghostModeEnabled: ghostModeEnabled,
                 gpsAvailable: gpsAvailable,
                 trackingDurationHours: trackingHours,
                 sessionEndTime: sessionEndTime,
                 onDurationChanged: _updateTrackingHours,
                 onStartTracking: _startTrackingSession,
-                onEnableGhostMode: _enableGhostMode,
-                onDisableGhostMode: _disableGhostMode,
+                onShareLocationChanged: (value) {
+                  if (!value) {
+                    _stopTrackingSession();
+                  }
+                },
               ),
               MapScreen(
                 selectedFriend: selectedFriend,
                 trackedFriend: trackedFriend,
                 trackingEnabled: trackingEnabled,
-                ghostModeEnabled: ghostModeEnabled,
                 onOpenSettings: _openSettings,
-                onDisableGhostMode: _disableGhostMode,
                 onClearRoute: _clearRoute,
                 onShowFriendOnMap: _showFriendOnMap,
                 onTrackFriend: _toggleTracking,
@@ -189,43 +198,11 @@ class _RootShellState extends State<RootShell> {
                 trackedFriend: trackedFriend,
                 onShowFriendOnMap: _showFriendOnMap,
                 onTrackFriend: _toggleTracking,
+                trackingEnabled: trackingEnabled,
+                sessionEndTime: sessionEndTime,
               ),
             ],
           ),
-          if (trackingEnabled && sessionEndTime != null)
-            Positioned(
-              top: 16,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceContainer.withValues(alpha: 0xF5),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppColors.outline),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      Strings.trackingActiveLabel,
-                      style: Theme.of(context).textTheme.labelLarge,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.timer, size: 16, color: AppColors.secondary),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${Strings.trackingEndsIn} ${_trackingRemainingLabel()}',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
         ],
       ),
       bottomNavigationBar: NavigationBar(

@@ -14,9 +14,7 @@ class MapScreen extends StatefulWidget {
     super.key,
     required this.selectedFriend,
     required this.trackingEnabled,
-    required this.ghostModeEnabled,
     required this.onOpenSettings,
-    required this.onDisableGhostMode,
     required this.onClearRoute,
     this.onShowFriendOnMap,
     this.onTrackFriend,
@@ -27,9 +25,7 @@ class MapScreen extends StatefulWidget {
   final Friend? selectedFriend;
   final Friend? trackedFriend;
   final bool trackingEnabled;
-  final bool ghostModeEnabled;
   final VoidCallback onOpenSettings;
-  final VoidCallback onDisableGhostMode;
   final VoidCallback onClearRoute;
   final ValueChanged<Friend>? onShowFriendOnMap;
   final ValueChanged<Friend>? onTrackFriend;
@@ -201,8 +197,7 @@ class _MapScreenState extends State<MapScreen> {
 
     if (widget.selectedFriend != oldWidget.selectedFriend ||
         widget.trackedFriend != oldWidget.trackedFriend ||
-        widget.trackingEnabled != oldWidget.trackingEnabled ||
-        widget.ghostModeEnabled != oldWidget.ghostModeEnabled) {
+        widget.trackingEnabled != oldWidget.trackingEnabled) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _updateRouteForActiveFriend();
       });
@@ -258,16 +253,6 @@ class _MapScreenState extends State<MapScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              Strings.mapTitle,
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              Strings.mapSubtitle,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 22),
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(28),
@@ -358,68 +343,84 @@ class _MapScreenState extends State<MapScreen> {
                               ],
                             ),
                           ),
+                          if (!widget.trackingEnabled || canShowRoute)
+                            Positioned(
+                              left: 16,
+                              right: 16,
+                              bottom: 16,
+                              child: Container(
+                                padding: const EdgeInsets.all(18),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withAlpha(0xB8),
+                                  borderRadius: BorderRadius.circular(28),
+                                  border: Border.all(color: AppColors.onSurface.withAlpha(0x1F)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withAlpha(0x52),
+                                      blurRadius: 18,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (!widget.trackingEnabled) ...[
+                                      Text(
+                                        Strings.shareLocationLockedLabel,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleLarge
+                                            ?.copyWith(color: AppColors.onSurface),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        Strings.shareLocationLockedSubtitle,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(color: AppColors.onSurfaceVariant),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      FilledButton(
+                                        style: FilledButton.styleFrom(
+                                          backgroundColor: AppColors.secondaryContainer,
+                                          foregroundColor: AppColors.onSecondaryContainer,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                        ),
+                                        onPressed: widget.onOpenSettings,
+                                        child: const Text(Strings.enableTrackingButton),
+                                      ),
+                                    ] else if (canShowRoute) ...[
+                                      Text(
+                                        Strings.routeSummaryTitle,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleLarge
+                                            ?.copyWith(color: AppColors.onSurface),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        _routePoints.isNotEmpty && _routeDistanceMeters != null
+                                            ? '${selectedFriend.name} · ${selectedFriend.location} · ${_formatDistance(_routeDistanceMeters! / 1000.0)}'
+                                            : Strings.routeSummaryLoading,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(color: AppColors.onSurfaceVariant),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     );
                   },
                 ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceContainer,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (canShowRoute) ...[
-                    Text(
-                      Strings.routeSummaryTitle,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      _routePoints.isNotEmpty && _routeDistanceMeters != null
-                          ? '${selectedFriend.name} · ${selectedFriend.location} · ${_formatDistance(_routeDistanceMeters! / 1000.0)}'
-                          : Strings.routeSummaryLoading,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ] else if (widget.ghostModeEnabled) ...[
-                    Text(
-                      Strings.ghostModeActiveLabel,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      Strings.ghostModeActiveSubtitle,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: widget.onDisableGhostMode,
-                      child: const Text(Strings.disableGhostModeButton),
-                    ),
-                  ] else ...[
-                    Text(
-                      Strings.trackingDisabledLabel,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      Strings.trackingDisabledSubtitle,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: widget.onOpenSettings,
-                      child: const Text(Strings.enableTrackingButton),
-                    ),
-                  ],
-                ],
               ),
             ),
           ],

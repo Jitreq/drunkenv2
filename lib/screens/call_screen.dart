@@ -2,73 +2,68 @@ import 'package:flutter/material.dart';
 
 import '../core/strings.dart';
 import '../core/theme/app_colors.dart';
+import '../widgets/xr_app_bar.dart';
 import 'chat_screen.dart';
+
+String _trackingRemainingLabel(DateTime? sessionEndTime) {
+  if (sessionEndTime == null) return '';
+  final remaining = sessionEndTime.difference(DateTime.now());
+  if (remaining.isNegative) return '0m';
+  if (remaining.inHours >= 1) {
+    return '${remaining.inHours}h ${remaining.inMinutes.remainder(60)}m';
+  }
+  return '${remaining.inMinutes}m';
+}
 
 class CallScreen extends StatelessWidget {
   const CallScreen({
     super.key,
     required this.friendName,
+    required this.trackingEnabled,
+    required this.sessionEndTime,
     this.onShowOnMap,
   });
 
   final String friendName;
+  final bool trackingEnabled;
+  final DateTime? sessionEndTime;
   final VoidCallback? onShowOnMap;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: XrAppBar(
+        title: Strings.callTitle,
+        leading: Icons.arrow_back_ios_new,
+        leadingTap: () => Navigator.of(context).pop(),
+        actions: [
+          if (trackingEnabled && sessionEndTime != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceContainer.withValues(alpha: 0xE6),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.timer, size: 16, color: AppColors.secondary),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${Strings.trackingEndsIn} ${_trackingRemainingLabel(sessionEndTime)}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new),
-                    color: AppColors.textPrimary,
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: Text(
-                        Strings.callTitle,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ),
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (onShowOnMap != null)
-                        IconButton(
-                          icon: const Icon(Icons.location_on),
-                          color: AppColors.textPrimary,
-                          onPressed: () {
-                            onShowOnMap!();
-                            Navigator.of(context).popUntil((route) => route.isFirst);
-                          },
-                        ),
-                      IconButton(
-                        icon: const Icon(Icons.message),
-                        color: AppColors.textPrimary,
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => ChatScreen(
-                                friendName: friendName,
-                                onShowOnMap: onShowOnMap,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -79,7 +74,23 @@ class CallScreen extends StatelessWidget {
                       Strings.callSubtitle,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 20),
+                    _CallHeaderActions(
+                      onShowOnMap: onShowOnMap,
+                      onMessage: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ChatScreen(
+                              friendName: friendName,
+                              trackingEnabled: trackingEnabled,
+                              sessionEndTime: sessionEndTime,
+                              onShowOnMap: onShowOnMap,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
                     Stack(
                       alignment: Alignment.center,
                       children: [
@@ -181,6 +192,52 @@ class CallScreen extends StatelessWidget {
   }
 }
 
+class _CallHeaderActions extends StatelessWidget {
+  const _CallHeaderActions({
+    required this.onShowOnMap,
+    required this.onMessage,
+  });
+
+  final VoidCallback? onShowOnMap;
+  final VoidCallback onMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      alignment: WrapAlignment.center,
+      children: [
+        if (onShowOnMap != null)
+          FilledButton.icon(
+            onPressed: onShowOnMap,
+            icon: const Icon(Icons.location_on, size: 18),
+            label: const Text(Strings.mapButton),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.surfaceVariant,
+              foregroundColor: AppColors.textPrimary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(22),
+              ),
+            ),
+          ),
+        FilledButton.icon(
+          onPressed: onMessage,
+          icon: const Icon(Icons.message, size: 18),
+          label: const Text(Strings.messageButton),
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.surfaceVariant,
+            foregroundColor: AppColors.textPrimary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(22),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _CallAction extends StatelessWidget {
   const _CallAction({required this.icon, required this.label});
 
@@ -192,18 +249,28 @@ class _CallAction extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 72,
-          height: 72,
+          width: 74,
+          height: 74,
           decoration: BoxDecoration(
-            color: AppColors.surfaceContainerHigh,
+            color: AppColors.surfaceVariant,
             shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(0x2E),
+                blurRadius: 18,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          child: Icon(icon, color: AppColors.textPrimary, size: 28),
+          child: Icon(icon, color: AppColors.onSurface, size: 28),
         ),
         const SizedBox(height: 10),
         Text(
           label,
-          style: Theme.of(context).textTheme.bodyMedium,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
         ),
       ],
     );

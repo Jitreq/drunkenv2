@@ -14,11 +14,15 @@ class HomeScreen extends StatelessWidget {
     required this.trackedFriend,
     required this.onShowFriendOnMap,
     required this.onTrackFriend,
+    required this.trackingEnabled,
+    required this.sessionEndTime,
   });
 
   final Friend? trackedFriend;
   final ValueChanged<Friend> onShowFriendOnMap;
   final ValueChanged<Friend> onTrackFriend;
+  final bool trackingEnabled;
+  final DateTime? sessionEndTime;
 
   void _showFriendProfile(BuildContext context, Friend friend) {
     showModalBottomSheet(
@@ -85,8 +89,12 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Card(
+              color: AppColors.surfaceContainerHigh,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
               child: InkWell(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(24),
                 onTap: () => _showUserProfile(context),
                 child: Padding(
                   padding: const EdgeInsets.all(18),
@@ -96,8 +104,15 @@ class HomeScreen extends StatelessWidget {
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: AppColors.primaryContainer,
-                        borderRadius: BorderRadius.circular(16),
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withAlpha(0x40),
+                            blurRadius: 18,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
                       child: const Icon(
                         Icons.location_on,
@@ -168,6 +183,8 @@ class HomeScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (_) => CallScreen(
                         friendName: friend.name,
+                        trackingEnabled: trackingEnabled,
+                        sessionEndTime: sessionEndTime,
                         onShowOnMap: () {
                           onShowFriendOnMap(friend);
                           Navigator.of(context).popUntil((route) => route.isFirst);
@@ -179,6 +196,8 @@ class HomeScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (_) => ChatScreen(
                         friendName: friend.name,
+                        trackingEnabled: trackingEnabled,
+                        sessionEndTime: sessionEndTime,
                         onShowOnMap: () {
                           onShowFriendOnMap(friend);
                           Navigator.of(context).popUntil((route) => route.isFirst);

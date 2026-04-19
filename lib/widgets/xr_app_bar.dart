@@ -10,6 +10,7 @@ class XrAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.trailing,
     this.leadingTap,
     this.trailingTap,
+    this.actions,
   });
 
   final String title;
@@ -17,6 +18,7 @@ class XrAppBar extends StatelessWidget implements PreferredSizeWidget {
   final IconData? trailing;
   final VoidCallback? leadingTap;
   final VoidCallback? trailingTap;
+  final List<Widget>? actions;
 
   @override
   Size get preferredSize => const Size.fromHeight(72);
@@ -38,14 +40,14 @@ class XrAppBar extends StatelessWidget implements PreferredSizeWidget {
               icon: Icon(leading, color: AppColors.textPrimary),
               onPressed: leadingTap,
             ),
-      actions: trailing == null
+      actions: actions ?? (trailing == null
           ? null
           : [
               IconButton(
                 icon: Icon(trailing, color: AppColors.textPrimary),
                 onPressed: trailingTap,
               ),
-            ],
+            ]),
     );
   }
 }

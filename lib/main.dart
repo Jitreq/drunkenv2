@@ -19,6 +19,30 @@ class MyApp extends StatelessWidget {
       title: Strings.appTitle,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark,
+      builder: (context, child) {
+        if (child == null) {
+          return const SizedBox.shrink();
+        }
+
+        final mediaQuery = MediaQuery.of(context);
+        final fixedSize = const Size(402, 874);
+        final override = mediaQuery.copyWith(
+          size: fixedSize,
+          viewPadding: EdgeInsets.zero,
+          padding: EdgeInsets.zero,
+        );
+
+        return MediaQuery(
+          data: override,
+          child: Center(
+            child: SizedBox(
+              width: fixedSize.width,
+              height: fixedSize.height,
+              child: child,
+            ),
+          ),
+        );
+      },
       home: const AppRoot(),
     );
   }

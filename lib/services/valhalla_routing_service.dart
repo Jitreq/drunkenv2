@@ -59,12 +59,13 @@ class ValhallaRoutingService {
       return points;
     }
 
+    final distance = Distance();
     final normalized = <LatLng>[points.first];
     for (var i = 1; i < points.length; i++) {
       final current = points[i];
       final previous = normalized.last;
-      if (current.latitude != previous.latitude ||
-          current.longitude != previous.longitude) {
+      final meters = distance(previous, current);
+      if (meters >= 0.5) {
         normalized.add(current);
       }
     }

@@ -40,24 +40,25 @@ class Strings {
   static const notificationsSubtitle = 'Receive alerts about friend activity.';  static const trackingDurationTitle = 'Tracking session';
   static const trackingDurationSubtitle =
       'Choose how long the app may keep the tracking session active.';
+  static const trackingDurationControlHint =
+      'Drag to adjust how many hours to keep the session running.';
   static const startTrackingButton = 'Start tracking';
+  static const stopSharingButton = 'Stop sharing';
   static const trackingActiveLabel = 'Tracking active';
+  static const shareLocationActiveSubtitle =
+      'Your location is visible to friends while tracking is active.';
+  static const shareLocationLockedLabel = 'Location sharing locked';
+  static const shareLocationLockedSubtitle =
+      'Location sharing is locked until a session is started.';
   static const trackingEndsIn = 'Ends in';
   static const enableTrackingButton = 'Enable tracking';
-  static const ghostModeLabel = 'Ghost mode';
-  static const ghostModeSubtitle = 'Tracking is disabled. Enable it in settings.';
-  static const ghostModeActiveLabel = 'Ghost mode active';
-  static const ghostModeActiveSubtitle = 'You are hidden and tracking is paused.';
-  static const enableGhostModeButton = 'Enable ghost mode';
-  static const disableGhostModeButton = 'Exit ghost mode';
   static const trackingDisabledLabel = 'Tracking disabled';
   static const trackingDisabledSubtitle = 'Enable tracking in Settings to follow friends.';
   static const dmButton = 'Message';
   static const callButtonLabel = 'Call';  static const logoutButton = 'Sign out';
 
   static const mapTitle = 'Map';
-  static const mapSubtitle =
-      'View friend locations and your current route. Select someone from Home.';
+  static const mapSubtitle = 'Live map of your location and friends.';
   static const routeSummaryTitle = 'Route summary';
   static const routeSummaryEmpty =
       'Select a friend from Home to view a route.';

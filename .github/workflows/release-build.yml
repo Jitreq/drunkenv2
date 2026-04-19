@@ -93,27 +93,31 @@ jobs:
         if: matrix.platform == 'macos'
         run: |
           mkdir -p release-artifacts
-          release_app="build/macos/Build/Products/Release/Runner.app"
-          if [ -d "$release_app" ]; then
-            zip -r "$GITHUB_WORKSPACE/release-artifacts/macos-release.zip" "$release_app"
-          else
-            echo "macOS Runner.app not found at $release_app"
-            find build/macos -maxdepth 5 -type d -name 'Runner.app' -print
+          app_path=$(find build/macos -maxdepth 6 -type d -name '*.app' | head -n 1)
+          if [ -z "$app_path" ]; then
+            echo "macOS app bundle not found under build/macos"
+            find build/macos -maxdepth 6 -type d -name '*.app' -print
             exit 1
           fi
+          app_dir=$(dirname "$app_path")
+          app_name=$(basename "$app_path")
+          cd "$app_dir"
+          zip -r "$GITHUB_WORKSPACE/release-artifacts/macos-release.zip" "$app_name"
 
       - name: Package iOS artifact
         if: matrix.platform == 'macos'
         run: |
           mkdir -p release-artifacts
-          ios_app="build/ios/iphoneos/Runner.app"
-          if [ -d "$ios_app" ]; then
-            zip -r "$GITHUB_WORKSPACE/release-artifacts/ios-release.zip" "$ios_app"
-          else
-            echo "iOS Runner.app not found at $ios_app"
-            find build/ios -maxdepth 5 -type d -name 'Runner.app' -print
+          app_path=$(find build/ios -maxdepth 8 -type d -name '*.app' | head -n 1)
+          if [ -z "$app_path" ]; then
+            echo "iOS app bundle not found under build/ios"
+            find build/ios -maxdepth 8 -type d -name '*.app' -print
             exit 1
           fi
+          app_dir=$(dirname "$app_path")
+          app_name=$(basename "$app_path")
+          cd "$app_dir"
+          zip -r "$GITHUB_WORKSPACE/release-artifacts/ios-release.zip" "$app_name"
 
       - name: Package Windows artifact
         if: matrix.platform == 'windows'

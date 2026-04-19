@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/strings.dart';
 import '../data/mock_data.dart';
 import '../widgets/friend_card.dart';
+import '../widgets/profile_sheet.dart';
 import '../core/theme/app_colors.dart';
 import 'call_screen.dart';
 import 'chat_screen.dart';
@@ -11,6 +12,40 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.onShowFriendOnMap});
 
   final ValueChanged<Friend> onShowFriendOnMap;
+
+  void _showFriendProfile(BuildContext context, Friend friend) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ProfileSheet(
+        name: friend.name,
+        subtitle: '${friend.location} · ${friend.lastSeen}',
+        location: friend.location,
+        status: friend.sharesLocation
+            ? 'Sharing location'
+            : 'Location hidden',
+        friendsSince: friend.friendsSince,
+        email: '${friend.name.toLowerCase()}@example.me',
+        avatarColor: AppColors.primaryContainer,
+      ),
+    );
+  }
+
+  void _showUserProfile(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ProfileSheet(
+        name: currentUser.name,
+        subtitle: currentUser.status,
+        location: currentUser.location,
+        status: currentUser.status,
+        friendsSince: currentUser.friendsSince,
+        email: currentUser.email,
+        avatarColor: AppColors.success,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +66,12 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Card(
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Row(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => _showUserProfile(context),
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Row(
                   children: [
                     Container(
                       width: 56,
@@ -74,6 +112,7 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ),
+          ),
             const SizedBox(height: 28),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -114,6 +153,7 @@ class HomeScreen extends StatelessWidget {
                       builder: (_) => ChatScreen(friendName: friend.name),
                     ),
                   ),
+                  onProfile: () => _showFriendProfile(context, friend),
                 );
               },
             ),

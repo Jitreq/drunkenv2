@@ -11,12 +11,14 @@ class FriendCard extends StatelessWidget {
     required this.onShowMap,
     required this.onCall,
     required this.onMessage,
+    required this.onProfile,
   });
 
   final Friend friend;
   final VoidCallback onShowMap;
   final VoidCallback onCall;
   final VoidCallback onMessage;
+  final VoidCallback onProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +27,12 @@ class FriendCard extends StatelessWidget {
         : _StatusPill(text: Strings.hiddenLocation, color: AppColors.outline);
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onProfile,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -89,7 +94,8 @@ class FriendCard extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }
 

@@ -10,6 +10,22 @@ class ChatMessage {
   });
 }
 
+class UserProfile {
+  final String name;
+  final String location;
+  final String status;
+  final String friendsSince;
+  final String email;
+
+  const UserProfile({
+    required this.name,
+    required this.location,
+    required this.status,
+    required this.friendsSince,
+    required this.email,
+  });
+}
+
 class Friend {
   final String name;
   final String location;
@@ -18,6 +34,7 @@ class Friend {
   final String distance;
   final double latitude;
   final double longitude;
+  final String friendsSince;
   final List<ChatMessage> chatHistory;
 
   const Friend({
@@ -28,9 +45,18 @@ class Friend {
     required this.distance,
     required this.latitude,
     required this.longitude,
+    required this.friendsSince,
     required this.chatHistory,
   });
 }
+
+const currentUser = UserProfile(
+  name: 'Anna',
+  location: 'Lappeenranta',
+  status: 'Prototype account · Sharing location',
+  friendsSince: 'Friends since 2022',
+  email: 'anna@example.me',
+);
 
 const currentLocationName = 'Lappeenranta';
 const currentLocationSubtitle = 'Updated 2 min ago';
@@ -46,6 +72,7 @@ const friends = [
     distance: '450 m',
     latitude: 61.0570,
     longitude: 28.1490,
+    friendsSince: 'Friends since 2023',
     chatHistory: [
       ChatMessage(
         text: 'Hey, are you still in town?',
@@ -72,6 +99,7 @@ const friends = [
     distance: '1.2 km',
     latitude: 61.0520,
     longitude: 28.1420,
+    friendsSince: 'Friends since 2021',
     chatHistory: [
       ChatMessage(
         text: 'I just got to the bar, it is packed.',
@@ -98,6 +126,7 @@ const friends = [
     distance: '820 m',
     latitude: 61.0580,
     longitude: 28.1360,
+    friendsSince: 'Friends since 2022',
     chatHistory: [
       ChatMessage(
         text: 'The sunset here is amazing.',

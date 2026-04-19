@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/strings.dart';
 import '../core/theme/app_colors.dart';
 import '../data/mock_data.dart';
+import '../widgets/profile_sheet.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key, required this.friendName});
@@ -39,6 +40,24 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  void _showFriendProfile() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ProfileSheet(
+        name: _friend.name,
+        subtitle: '${_friend.location} · ${_friend.lastSeen}',
+        location: _friend.location,
+        status: _friend.sharesLocation
+            ? 'Sharing location'
+            : 'Location hidden',
+        friendsSince: _friend.friendsSince,
+        email: '${_friend.name.toLowerCase()}@example.me',
+        avatarColor: AppColors.primaryContainer,
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -53,6 +72,12 @@ class _ChatScreenState extends State<ChatScreen> {
         title: Text('${Strings.chatTitle} · ${widget.friendName}'),
         backgroundColor: AppColors.surfaceContainer,
         surfaceTintColor: Colors.transparent,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: _showFriendProfile,
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
@@ -123,6 +148,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             Container(
+              width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 color: AppColors.surfaceContainer,

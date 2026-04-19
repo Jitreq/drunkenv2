@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import '../core/strings.dart';
 import '../core/theme/app_colors.dart';
 import '../data/mock_data.dart';
+import '../widgets/profile_sheet.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key, required this.selectedFriend});
@@ -18,6 +19,40 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
 
+  void _showFriendProfile(Friend friend) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ProfileSheet(
+        name: friend.name,
+        subtitle: '${friend.location} · ${friend.lastSeen}',
+        location: friend.location,
+        status: friend.sharesLocation
+            ? 'Sharing location'
+            : 'Location hidden',
+        friendsSince: friend.friendsSince,
+        email: '${friend.name.toLowerCase()}@example.me',
+        avatarColor: AppColors.primaryContainer,
+      ),
+    );
+  }
+
+  void _showUserProfile() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ProfileSheet(
+        name: currentUser.name,
+        subtitle: currentUser.status,
+        location: currentUser.location,
+        status: currentUser.status,
+        friendsSince: currentUser.friendsSince,
+        email: currentUser.email,
+        avatarColor: AppColors.success,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedFriend = widget.selectedFriend;
@@ -28,8 +63,10 @@ class _MapScreenState extends State<MapScreen> {
         width: 92,
         height: 96,
         point: LatLng(currentLatitude, currentLongitude),
-        builder: (_) =>
-            const _MapPin(label: Strings.youLabel, color: AppColors.success),
+        builder: (_) => GestureDetector(
+          onTap: _showUserProfile,
+          child: const _MapPin(label: Strings.youLabel, color: AppColors.success),
+        ),
       ),
       ...friends
           .where((friend) => friend.sharesLocation)
@@ -38,8 +75,10 @@ class _MapScreenState extends State<MapScreen> {
               width: 92,
               height: 96,
               point: LatLng(friend.latitude, friend.longitude),
-              builder: (_) =>
-                  _MapPin(label: friend.name, color: AppColors.primary),
+              builder: (_) => GestureDetector(
+                onTap: () => _showFriendProfile(friend),
+                child: _MapPin(label: friend.name, color: AppColors.primary),
+              ),
             ),
           ),
     ];

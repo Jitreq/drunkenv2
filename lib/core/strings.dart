@@ -26,6 +26,9 @@ class Strings {
   static const settingsSubtitle = 'Manage account settings and privacy.';
   static const profileName = 'Anna';
   static const profileStatus = 'Prototype account · Sharing location';
+  static const profileLocationTitle = 'Lappeenranta';
+  static const profileFriendsSince = 'Friends since';
+  static const profileEmail = 'anna@example.me';
   static const shareLocationTitle = 'Share location';
   static const shareLocationSubtitle = 'Allow friends to see your location.';
   static const visibleToFriendsTitle = 'Visible to friends';

@@ -1,0 +1,115 @@
+name: Build Release Packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: release-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - platform: android
+            os: ubuntu-latest
+          - platform: linux
+            os: ubuntu-latest
+          - platform: windows
+            os: windows-latest
+          - platform: macos
+            os: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: .fvmrc
+          cache: true
+          pub-cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android app bundle
+        if: matrix.platform == 'android'
+        run: flutter build appbundle --release
+
+      - name: Build Linux release
+        if: matrix.platform == 'linux'
+        run: flutter build linux --release
+
+      - name: Build macOS release
+        if: matrix.platform == 'macos'
+        run: flutter build macos --release
+
+      - name: Build Windows release
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: flutter build windows --release
+
+      - name: Package Android artifact
+        if: matrix.platform == 'android'
+        run: |
+          mkdir -p release-artifacts
+          cp build/app/outputs/bundle/release/app-release.aab release-artifacts/app-release.aab
+
+      - name: Package Linux artifact
+        if: matrix.platform == 'linux'
+        run: |
+          mkdir -p release-artifacts
+          cd build/linux/x64/release
+          zip -r "$GITHUB_WORKSPACE/release-artifacts/linux-release.zip" bundle
+
+      - name: Package macOS artifact
+        if: matrix.platform == 'macos'
+        run: |
+          mkdir -p release-artifacts
+          cd build/macos/Build/Products/Release
+          zip -r "$GITHUB_WORKSPACE/release-artifacts/macos-release.zip" Runner.app
+
+      - name: Package Windows artifact
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path release-artifacts | Out-Null
+          Compress-Archive -Path build/windows/runner/Release/* -DestinationPath release-artifacts/windows-release.zip
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.platform }}
+          path: release-artifacts/*
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+
+      - name: List release assets
+        run: ls -la release-assets
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

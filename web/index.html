@@ -33,19 +33,28 @@
   <title>drunken_flutter</title>
   <link rel="manifest" href="manifest.json">
   <style>
-    html, body, body > * {
-      width: 402px;
-      height: 874px;
+    html, body {
+      width: 402px !important;
+      height: 874px !important;
       margin: 0;
       padding: 0;
     }
 
     body {
-      overflow: hidden;
+      overflow: hidden !important;
       display: flex;
       align-items: center;
       justify-content: center;
       background: #000;
+    }
+
+    body, body > *, #flutter_container, #flt-glass-pane, flt-platform-view, .flt-platform-view {
+      width: 402px !important;
+      height: 874px !important;
+    }
+
+    body > * {
+      box-sizing: border-box;
     }
   </style>
 </head>

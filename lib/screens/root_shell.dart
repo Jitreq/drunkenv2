@@ -113,6 +113,7 @@ class _RootShellState extends State<RootShell> {
   void _clearRoute() {
     setState(() {
       selectedFriend = null;
+      trackedFriend = null;
     });
   }
 

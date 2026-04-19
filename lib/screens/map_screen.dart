@@ -262,7 +262,6 @@ class _MapScreenState extends State<MapScreen> {
                               children: [
                                 _MapControlButton(
                                   icon: Icons.my_location,
-                                  label: Strings.centerLocation,
                                   onPressed: () {
                                     _mapController.move(
                                       LatLng(_currentLatitude, _currentLongitude),
@@ -272,8 +271,7 @@ class _MapScreenState extends State<MapScreen> {
                                 ),
                                 const SizedBox(height: 12),
                                 _MapControlButton(
-                                  icon: Icons.zoom_in,
-                                  label: '+',
+                                  icon: Icons.add,
                                   onPressed: () {
                                     setState(() {
                                       _mapZoom = (_mapZoom + 1).clamp(5, 18);
@@ -283,8 +281,7 @@ class _MapScreenState extends State<MapScreen> {
                                 ),
                                 const SizedBox(height: 10),
                                 _MapControlButton(
-                                  icon: Icons.zoom_out,
-                                  label: '-',
+                                  icon: Icons.remove,
                                   onPressed: () {
                                     setState(() {
                                       _mapZoom = (_mapZoom - 1).clamp(5, 18);
@@ -295,8 +292,7 @@ class _MapScreenState extends State<MapScreen> {
                                 if (canShowRoute) ...[
                                   const SizedBox(height: 12),
                                   _MapControlButton(
-                                    icon: Icons.clear,
-                                    label: Strings.clearRoute,
+                                    icon: Icons.delete,
                                     onPressed: _clearRoute,
                                   ),
                                 ],
@@ -498,12 +494,10 @@ class _MapPinState extends State<_MapPin>
 class _MapControlButton extends StatelessWidget {
   const _MapControlButton({
     required this.icon,
-    required this.label,
     required this.onPressed,
   });
 
   final IconData icon;
-  final String label;
   final VoidCallback onPressed;
 
   @override
@@ -521,9 +515,7 @@ class _MapControlButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
           ),
         ),
-        child: icon == Icons.my_location
-            ? const Icon(Icons.my_location)
-            : Text(label, style: const TextStyle(fontSize: 20)),
+        child: Icon(icon, size: 20),
       ),
     );
   }

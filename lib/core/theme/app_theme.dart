@@ -58,6 +58,29 @@ class AppTheme {
         hintStyle: const TextStyle(color: AppColors.textSecondary),
         labelStyle: const TextStyle(color: AppColors.textSecondary),
       ),
+      textSelectionTheme: TextSelectionThemeData(
+        selectionColor: AppColors.secondaryContainer,
+        cursorColor: AppColors.primary,
+        selectionHandleColor: AppColors.secondary,
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          return states.contains(WidgetState.selected)
+              ? AppColors.primary
+              : AppColors.surface;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          return states.contains(WidgetState.selected)
+              ? AppColors.secondaryContainer
+              : AppColors.surfaceVariant;
+        }),
+      ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: const WidgetStatePropertyAll(AppColors.secondary),
+        checkColor: const WidgetStatePropertyAll(AppColors.onSecondary),
+        side: BorderSide(color: AppColors.outline),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.surfaceContainer,
         indicatorColor: AppColors.secondaryContainer,
@@ -77,10 +100,16 @@ class AppTheme {
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.onPrimary,
-          minimumSize: const Size(double.infinity, 52),
+          minimumSize: const Size(64, 52),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(26),
           ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
       textTheme: const TextTheme(

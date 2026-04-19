@@ -4,11 +4,17 @@ import '../core/strings.dart';
 import '../core/theme/app_colors.dart';
 import '../data/mock_data.dart';
 import '../widgets/profile_sheet.dart';
+import 'call_screen.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key, required this.friendName});
+  const ChatScreen({
+    super.key,
+    required this.friendName,
+    this.onShowOnMap,
+  });
 
   final String friendName;
+  final VoidCallback? onShowOnMap;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -54,6 +60,12 @@ class _ChatScreenState extends State<ChatScreen> {
         friendsSince: _friend.friendsSince,
         email: '${_friend.name.toLowerCase()}@example.me',
         avatarColor: AppColors.primaryContainer,
+        onShowOnMap: _friend.sharesLocation
+            ? () {
+                Navigator.of(context).pop();
+                widget.onShowOnMap?.call();
+              }
+            : null,
       ),
     );
   }
@@ -73,6 +85,27 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: AppColors.surfaceContainer,
         surfaceTintColor: Colors.transparent,
         actions: [
+          if (widget.onShowOnMap != null)
+            IconButton(
+              icon: const Icon(Icons.location_on),
+              onPressed: () {
+                widget.onShowOnMap!();
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+            ),
+          IconButton(
+            icon: const Icon(Icons.call),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => CallScreen(
+                    friendName: widget.friendName,
+                    onShowOnMap: widget.onShowOnMap,
+                  ),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: _showFriendProfile,
@@ -108,7 +141,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       constraints: const BoxConstraints(maxWidth: 280),
                       decoration: BoxDecoration(
                         color: message.isMe
-                            ? AppColors.primary
+                            ? AppColors.secondary
                             : AppColors.surfaceContainer,
                         borderRadius: BorderRadius.only(
                           topLeft: const Radius.circular(18),
@@ -128,7 +161,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             message.text,
                             style: TextStyle(
                               color: message.isMe
-                                  ? AppColors.onPrimary
+                                  ? AppColors.onSecondary
                                   : AppColors.textPrimary,
                             ),
                           ),
@@ -136,7 +169,9 @@ class _ChatScreenState extends State<ChatScreen> {
                           Text(
                             message.time,
                             style: TextStyle(
-                              color: AppColors.textSecondary,
+                              color: message.isMe
+                                  ? AppColors.onSecondary
+                                  : AppColors.textSecondary,
                               fontSize: 11,
                             ),
                           ),

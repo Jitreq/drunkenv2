@@ -27,6 +27,12 @@ class HomeScreen extends StatelessWidget {
         friendsSince: friend.friendsSince,
         email: '${friend.name.toLowerCase()}@example.me',
         avatarColor: AppColors.primaryContainer,
+        onShowOnMap: friend.sharesLocation
+            ? () {
+                Navigator.of(context).pop();
+                onShowFriendOnMap(friend);
+              }
+            : null,
       ),
     );
   }
@@ -56,7 +62,7 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              Strings.homeTitle,
+              Strings.friendsTitle,
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 10),
@@ -145,12 +151,24 @@ class HomeScreen extends StatelessWidget {
                   onShowMap: () => onShowFriendOnMap(friend),
                   onCall: () => Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => CallScreen(friendName: friend.name),
+                      builder: (_) => CallScreen(
+                        friendName: friend.name,
+                        onShowOnMap: () {
+                          onShowFriendOnMap(friend);
+                          Navigator.of(context).popUntil((route) => route.isFirst);
+                        },
+                      ),
                     ),
                   ),
                   onMessage: () => Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => ChatScreen(friendName: friend.name),
+                      builder: (_) => ChatScreen(
+                        friendName: friend.name,
+                        onShowOnMap: () {
+                          onShowFriendOnMap(friend);
+                          Navigator.of(context).popUntil((route) => route.isFirst);
+                        },
+                      ),
                     ),
                   ),
                   onProfile: () => _showFriendProfile(context, friend),

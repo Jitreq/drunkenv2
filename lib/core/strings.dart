@@ -38,8 +38,23 @@ class Strings {
   static const locationSharingSubtitle =
       'Your location is not stored in mock mode.';
   static const notifications = 'Notifications';
-  static const notificationsSubtitle = 'Receive alerts about friend activity.';
-  static const logoutButton = 'Sign out';
+  static const notificationsSubtitle = 'Receive alerts about friend activity.';  static const trackingDurationTitle = 'Tracking session';
+  static const trackingDurationSubtitle =
+      'Choose how long the app may keep the tracking session active.';
+  static const startTrackingButton = 'Start tracking';
+  static const trackingActiveLabel = 'Tracking active';
+  static const trackingEndsIn = 'Ends in';
+  static const enableTrackingButton = 'Enable tracking';
+  static const ghostModeLabel = 'Ghost mode';
+  static const ghostModeSubtitle = 'Tracking is disabled. Enable it in settings.';
+  static const ghostModeActiveLabel = 'Ghost mode active';
+  static const ghostModeActiveSubtitle = 'You are hidden and tracking is paused.';
+  static const enableGhostModeButton = 'Enable ghost mode';
+  static const disableGhostModeButton = 'Exit ghost mode';
+  static const trackingDisabledLabel = 'Tracking disabled';
+  static const trackingDisabledSubtitle = 'Enable tracking in Settings to follow friends.';
+  static const dmButton = 'Message';
+  static const callButtonLabel = 'Call';  static const logoutButton = 'Sign out';
 
   static const mapTitle = 'Map';
   static const mapSubtitle =

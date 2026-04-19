@@ -1,16 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../core/strings.dart';
 import '../core/theme/app_colors.dart';
 import '../data/mock_data.dart';
 import '../widgets/profile_sheet.dart';
+import 'call_screen.dart';
+import 'chat_screen.dart';
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key, required this.selectedFriend});
+  const MapScreen({
+    super.key,
+    required this.selectedFriend,
+    required this.trackingEnabled,
+    required this.ghostModeEnabled,
+    required this.onOpenSettings,
+    required this.onDisableGhostMode,
+    required this.onClearRoute,
+    this.onShowFriendOnMap,
+  });
 
   final Friend? selectedFriend;
+  final bool trackingEnabled;
+  final bool ghostModeEnabled;
+  final VoidCallback onOpenSettings;
+  final VoidCallback onDisableGhostMode;
+  final VoidCallback onClearRoute;
+  final ValueChanged<Friend>? onShowFriendOnMap;
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -18,8 +36,82 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
+  Friend? _trackedFriend;
+  double _currentLatitude = currentLatitude;
+  double _currentLongitude = currentLongitude;
+  late LatLng _mapCenter;
+  double _mapZoom = 14;
+
+  Friend? get _activeFriend {
+    if (widget.trackingEnabled && _trackedFriend != null) {
+      return _trackedFriend;
+    }
+    return widget.selectedFriend ?? _trackedFriend;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _mapCenter = LatLng(_currentLatitude, _currentLongitude);
+    _fetchLocation();
+  }
+
+  Future<void> _fetchLocation() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        return;
+      }
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.deniedForever ||
+          permission == LocationPermission.denied) {
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best,
+      );
+      setState(() {
+        _currentLatitude = position.latitude;
+        _currentLongitude = position.longitude;
+        _mapCenter = LatLng(position.latitude, position.longitude);
+      });
+    } catch (_) {
+      // Fallback to the hard-coded location if GPS is unavailable.
+    }
+  }
+
+  void _centerOnFriend(Friend friend) {
+    final midpoint = LatLng(
+      (_currentLatitude + friend.latitude) / 2,
+      (_currentLongitude + friend.longitude) / 2,
+    );
+    _mapController.move(midpoint, 13);
+  }
+
+  void _toggleTracking(Friend friend) {
+    setState(() {
+      if (_trackedFriend == friend) {
+        _trackedFriend = null;
+      } else {
+        _trackedFriend = friend;
+      }
+    });
+  }
+
+  void _clearRoute() {
+    setState(() {
+      _trackedFriend = null;
+    });
+    widget.onClearRoute();
+  }
 
   void _showFriendProfile(Friend friend) {
+    final tracking = _trackedFriend == friend;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -33,6 +125,49 @@ class _MapScreenState extends State<MapScreen> {
         friendsSince: friend.friendsSince,
         email: '${friend.name.toLowerCase()}@example.me',
         avatarColor: AppColors.primaryContainer,
+        onCall: () {
+          Navigator.of(context).pop();
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => CallScreen(
+                friendName: friend.name,
+                onShowOnMap: friend.sharesLocation
+                    ? () {
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                        widget.onShowFriendOnMap?.call(friend);
+                      }
+                    : null,
+              ),
+            ),
+          );
+        },
+        onMessage: () {
+          Navigator.of(context).pop();
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => ChatScreen(
+                friendName: friend.name,
+                onShowOnMap: friend.sharesLocation
+                    ? () {
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                        widget.onShowFriendOnMap?.call(friend);
+                      }
+                    : null,
+              ),
+            ),
+          );
+        },
+        actionLabel: tracking ? 'Untrack friend' : 'Track friend',
+        onAction: () {
+          Navigator.of(context).pop();
+          _toggleTracking(friend);
+        },
+        onShowOnMap: friend.sharesLocation
+            ? () {
+                Navigator.of(context).pop();
+                widget.onShowFriendOnMap?.call(friend);
+              }
+            : null,
       ),
     );
   }
@@ -54,15 +189,28 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   @override
+  void didUpdateWidget(covariant MapScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.trackingEnabled && widget.selectedFriend != null &&
+        widget.selectedFriend != oldWidget.selectedFriend) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _centerOnFriend(widget.selectedFriend!);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final selectedFriend = widget.selectedFriend;
-    final hasRoute = selectedFriend != null && selectedFriend.sharesLocation;
+    final selectedFriend = _activeFriend;
+    final canShowRoute = selectedFriend != null &&
+        selectedFriend.sharesLocation &&
+        (widget.trackingEnabled || _trackedFriend != null);
 
     final markers = [
       Marker(
         width: 92,
         height: 96,
-        point: LatLng(currentLatitude, currentLongitude),
+        point: LatLng(_currentLatitude, _currentLongitude),
         builder: (_) => GestureDetector(
           onTap: _showUserProfile,
           child: const _MapPin(label: Strings.youLabel, color: AppColors.success),
@@ -71,15 +219,22 @@ class _MapScreenState extends State<MapScreen> {
       ...friends
           .where((friend) => friend.sharesLocation)
           .map(
-            (friend) => Marker(
-              width: 92,
-              height: 96,
-              point: LatLng(friend.latitude, friend.longitude),
-              builder: (_) => GestureDetector(
-                onTap: () => _showFriendProfile(friend),
-                child: _MapPin(label: friend.name, color: AppColors.primary),
-              ),
-            ),
+            (friend) {
+              final isTracked = _trackedFriend == friend;
+              return Marker(
+                width: 92,
+                height: 96,
+                point: LatLng(friend.latitude, friend.longitude),
+                builder: (_) => GestureDetector(
+                  onTap: () => _showFriendProfile(friend),
+                  child: _MapPin(
+                    label: friend.name,
+                    color: AppColors.primary,
+                    isTracked: isTracked,
+                  ),
+                ),
+              );
+            },
           ),
     ];
 
@@ -110,9 +265,16 @@ class _MapScreenState extends State<MapScreen> {
                       child: FlutterMap(
                         mapController: _mapController,
                         options: MapOptions(
-                          center: LatLng(currentLatitude, currentLongitude),
-                          zoom: 14,
+                          center: _mapCenter,
+                          zoom: _mapZoom,
                           minZoom: 5,
+                          onPositionChanged: (position, hasGesture) {
+                            if (!mounted) return;
+                            setState(() {
+                              _mapCenter = position.center ?? _mapCenter;
+                              _mapZoom = position.zoom ?? _mapZoom;
+                            });
+                          },
                         ),
                         children: [
                           TileLayer(
@@ -121,12 +283,12 @@ class _MapScreenState extends State<MapScreen> {
                             userAgentPackageName: 'fi.lappeenranta.drunken_flutter',
                             backgroundColor: const Color(0xFF181E24),
                           ),
-                          if (hasRoute)
+                          if (canShowRoute)
                             PolylineLayer(
                               polylines: [
                                 Polyline(
                                   points: [
-                                    LatLng(currentLatitude, currentLongitude),
+                                    LatLng(_currentLatitude, _currentLongitude),
                                     LatLng(
                                       selectedFriend.latitude,
                                       selectedFriend.longitude,
@@ -157,51 +319,83 @@ class _MapScreenState extends State<MapScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    Strings.routeSummaryTitle,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    hasRoute
-                        ? '${selectedFriend.name} · ${selectedFriend.location} · ${selectedFriend.distance}'
-                        : Strings.routeSummaryEmpty,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: FilledButton(
-                          onPressed: () {
-                            _mapController.move(
-                              LatLng(currentLatitude, currentLongitude),
-                              14,
-                            );
-                          },
-                          child: const Text(Strings.centerLocation),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      SizedBox(
-                        width: 130,
-                        height: 48,
-                        child: OutlinedButton(
-                          onPressed: hasRoute ? () {} : null,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.textPrimary,
-                            side: BorderSide(
-                              color: AppColors.outline.withAlpha(179),
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
-                            ),
+                  if (widget.trackingEnabled) ...[
+                    Text(
+                      Strings.routeSummaryTitle,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      canShowRoute
+                          ? '${selectedFriend.name} · ${selectedFriend.location} · ${selectedFriend.distance}'
+                          : Strings.routeSummaryEmpty,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              _mapController.move(
+                                LatLng(_currentLatitude, _currentLongitude),
+                                14,
+                              );
+                            },
+                            child: const Text(Strings.centerLocation),
                           ),
-                          child: const Text(Strings.clearRoute),
                         ),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          width: 130,
+                          height: 48,
+                          child: OutlinedButton(
+                            onPressed: canShowRoute ? _clearRoute : null,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.textPrimary,
+                              side: BorderSide(
+                                color: AppColors.outline.withAlpha(179),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            child: const Text(Strings.clearRoute),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else if (widget.ghostModeEnabled) ...[
+                    Text(
+                      Strings.ghostModeActiveLabel,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      Strings.ghostModeActiveSubtitle,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      onPressed: widget.onDisableGhostMode,
+                      child: const Text(Strings.disableGhostModeButton),
+                    ),
+                  ] else ...[
+                    Text(
+                      Strings.trackingDisabledLabel,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      Strings.trackingDisabledSubtitle,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      onPressed: widget.onOpenSettings,
+                      child: const Text(Strings.enableTrackingButton),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -213,10 +407,15 @@ class _MapScreenState extends State<MapScreen> {
 }
 
 class _MapPin extends StatelessWidget {
-  const _MapPin({required this.label, required this.color});
+  const _MapPin({
+    required this.label,
+    required this.color,
+    this.isTracked = false,
+  });
 
   final String label;
   final Color color;
+  final bool isTracked;
 
   @override
   Widget build(BuildContext context) {
@@ -229,6 +428,12 @@ class _MapPin extends StatelessWidget {
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
+            border: isTracked
+                ? Border.all(
+                    color: AppColors.primary,
+                    width: 3,
+                  )
+                : null,
             boxShadow: [
               BoxShadow(
                 color: color.withAlpha(90),

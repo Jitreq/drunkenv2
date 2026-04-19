@@ -12,6 +12,7 @@ class FriendCard extends StatelessWidget {
     required this.onCall,
     required this.onMessage,
     required this.onProfile,
+    this.distanceLabel,
   });
 
   final Friend friend;
@@ -19,6 +20,7 @@ class FriendCard extends StatelessWidget {
   final VoidCallback onCall;
   final VoidCallback onMessage;
   final VoidCallback onProfile;
+  final String? distanceLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +61,9 @@ class FriendCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '${friend.location} · ${friend.lastSeen}',
+                        distanceLabel != null
+                            ? '${friend.location} · ${friend.lastSeen} · $distanceLabel'
+                            : '${friend.location} · ${friend.lastSeen}',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],

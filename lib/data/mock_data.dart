@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 class ChatMessage {
   final String text;
   final bool isMe;
@@ -31,7 +33,6 @@ class Friend {
   final String location;
   final bool sharesLocation;
   final String lastSeen;
-  final String distance;
   final double latitude;
   final double longitude;
   final String friendsSince;
@@ -42,36 +43,57 @@ class Friend {
     required this.location,
     required this.sharesLocation,
     required this.lastSeen,
-    required this.distance,
     required this.latitude,
     required this.longitude,
     required this.friendsSince,
     required this.chatHistory,
   });
+
+  double distanceTo(double fromLatitude, double fromLongitude) {
+    const earthRadiusKm = 6371.0;
+    final lat1 = fromLatitude * math.pi / 180;
+    final lon1 = fromLongitude * math.pi / 180;
+    final lat2 = latitude * math.pi / 180;
+    final lon2 = longitude * math.pi / 180;
+    final dlat = lat2 - lat1;
+    final dlon = lon2 - lon1;
+    final a = math.sin(dlat / 2) * math.sin(dlat / 2) +
+        math.cos(lat1) * math.cos(lat2) *
+        math.sin(dlon / 2) * math.sin(dlon / 2);
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return earthRadiusKm * c;
+  }
+
+  String distanceLabel(double fromLatitude, double fromLongitude) {
+    final km = distanceTo(fromLatitude, fromLongitude);
+    if (km < 1) {
+      return '${(km * 1000).round()} m';
+    }
+    return '${km.toStringAsFixed(1)} km';
+  }
 }
 
 const currentUser = UserProfile(
   name: 'Juho',
-  location: 'Lappeenranta',
+  location: 'Las Palmas',
   status: 'Sharing location',
   friendsSince: 'Friends since 2022',
   email: 'juho@example.me',
 );
 
-const currentLocationName = 'Lappeenranta';
+const currentLocationName = 'Las Palmas';
 const currentLocationSubtitle = 'Updated 2 min ago';
-const currentLatitude = 61.0550;
-const currentLongitude = 28.1446;
+const currentLatitude = 61.058079167427785;
+const currentLongitude = 28.185507164175075;
 
 const friends = [
   Friend(
     name: 'Taneli',
-    location: 'Downtown',
+    location: 'Cluster Ry Kiltahuone',
     sharesLocation: true,
     lastSeen: '1 min ago',
-    distance: '450 m',
-    latitude: 61.0570,
-    longitude: 28.1490,
+    latitude: 61.063987899910224,
+    longitude: 28.095343057853643,
     friendsSince: 'Friends since 2023',
     chatHistory: [
       ChatMessage(
@@ -93,12 +115,11 @@ const friends = [
   ),
   Friend(
     name: 'Eeri',
-    location: 'Night Bar',
+    location: 'G Bar',
     sharesLocation: false,
     lastSeen: '12 min ago',
-    distance: '1.2 km',
-    latitude: 61.0520,
-    longitude: 28.1420,
+    latitude: 61.06324558392994,
+    longitude: 28.096206729146804,
     friendsSince: 'Friends since 2021',
     chatHistory: [
       ChatMessage(
@@ -120,12 +141,11 @@ const friends = [
   ),
   Friend(
     name: 'Allu',
-    location: 'Beach',
+    location: '?',
     sharesLocation: true,
     lastSeen: '3 min ago',
-    distance: '820 m',
-    latitude: 61.0580,
-    longitude: 28.1360,
+    latitude: 61.06315993096796,
+    longitude: 28.0982559367974,
     friendsSince: 'Friends since 2022',
     chatHistory: [
       ChatMessage(
@@ -147,12 +167,11 @@ const friends = [
   ),
   Friend(
     name: 'Aleksi',
-    location: 'City Park',
+    location: 'Vierula',
     sharesLocation: true,
     lastSeen: '5 min ago',
-    distance: '1.0 km',
-    latitude: 61.0600,
-    longitude: 28.1505,
+    latitude: 61.06471458205442,
+    longitude: 28.099358095710734,
     friendsSince: 'Friends since 2024',
     chatHistory: [
       ChatMessage(

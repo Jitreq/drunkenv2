@@ -54,6 +54,7 @@ class _ChatScreenState extends State<ChatScreen> {
         name: _friend.name,
         subtitle: '${_friend.location} · ${_friend.lastSeen}',
         location: _friend.location,
+        distance: _friend.distanceLabel(currentLatitude, currentLongitude),
         status: _friend.sharesLocation
             ? 'Sharing location'
             : 'Location hidden',

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -100,6 +102,28 @@ class _MapScreenState extends State<MapScreen> {
     _mapController.move(midpoint, 13);
   }
 
+  double _distanceKm(Friend friend) {
+    const earthRadiusKm = 6371.0;
+    final lat1 = _currentLatitude * math.pi / 180;
+    final lon1 = _currentLongitude * math.pi / 180;
+    final lat2 = friend.latitude * math.pi / 180;
+    final lon2 = friend.longitude * math.pi / 180;
+    final dlat = lat2 - lat1;
+    final dlon = lon2 - lon1;
+    final a = math.sin(dlat / 2) * math.sin(dlat / 2) +
+        math.cos(lat1) * math.cos(lat2) *
+        math.sin(dlon / 2) * math.sin(dlon / 2);
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return earthRadiusKm * c;
+  }
+
+  String _formatDistance(double km) {
+    if (km < 1.0) {
+      return '${(km * 1000).round()} m';
+    }
+    return '${km.toStringAsFixed(1)} km';
+  }
+
   void _clearRoute() {
     widget.onClearRoute();
   }
@@ -117,6 +141,7 @@ class _MapScreenState extends State<MapScreen> {
         name: friend.name,
         subtitle: '${friend.location} · ${friend.lastSeen}',
         location: friend.location,
+        distance: friend.distanceLabel(_currentLatitude, _currentLongitude),
         status: friend.sharesLocation
             ? 'Sharing location'
             : 'Location hidden',
@@ -325,7 +350,7 @@ class _MapScreenState extends State<MapScreen> {
                     const SizedBox(height: 10),
                     Text(
                       canShowRoute
-                          ? '${selectedFriend.name} · ${selectedFriend.location} · ${selectedFriend.distance}'
+                          ? '${selectedFriend.name} · ${selectedFriend.location} · ${_formatDistance(_distanceKm(selectedFriend))}'
                           : Strings.routeSummaryEmpty,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),

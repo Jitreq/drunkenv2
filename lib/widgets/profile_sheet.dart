@@ -12,6 +12,7 @@ class ProfileSheet extends StatelessWidget {
     required this.status,
     required this.friendsSince,
     required this.email,
+    this.distance,
     required this.avatarColor,
     this.onCall,
     this.onMessage,
@@ -26,6 +27,7 @@ class ProfileSheet extends StatelessWidget {
   final String status;
   final String friendsSince;
   final String email;
+  final String? distance;
   final Color avatarColor;
   final VoidCallback? onCall;
   final VoidCallback? onMessage;
@@ -78,6 +80,10 @@ class ProfileSheet extends StatelessWidget {
           const SizedBox(height: 18),
           _ProfileRow(label: 'Location', value: location),
           const SizedBox(height: 10),
+          if (distance != null) ...[
+            _ProfileRow(label: 'Distance', value: distance!),
+            const SizedBox(height: 10),
+          ],
           _ProfileRow(label: 'Status', value: status),
           const SizedBox(height: 10),
           _ProfileRow(label: 'Friends since', value: friendsSince),

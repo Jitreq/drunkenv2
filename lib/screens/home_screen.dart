@@ -28,6 +28,7 @@ class HomeScreen extends StatelessWidget {
         name: friend.name,
         subtitle: '${friend.location} · ${friend.lastSeen}',
         location: friend.location,
+        distance: friend.distanceLabel(currentLatitude, currentLongitude),
         status: friend.sharesLocation
             ? 'Sharing location'
             : 'Location hidden',
@@ -158,8 +159,10 @@ class HomeScreen extends StatelessWidget {
               separatorBuilder: (context, index) => const SizedBox(height: 14),
               itemBuilder: (context, index) {
                 final friend = friends[index];
+                final distanceLabel = friend.distanceLabel(currentLatitude, currentLongitude);
                 return FriendCard(
                   friend: friend,
+                  distanceLabel: distanceLabel,
                   onShowMap: () => onShowFriendOnMap(friend),
                   onCall: () => Navigator.of(context).push(
                     MaterialPageRoute(

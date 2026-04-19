@@ -47,9 +47,9 @@ class Strings {
   static const trackingActiveLabel = 'Tracking active';
   static const shareLocationActiveSubtitle =
       'Your location is visible to friends while tracking is active.';
-  static const shareLocationLockedLabel = 'Location sharing locked';
+  static const shareLocationLockedLabel = 'Location unshared';
   static const shareLocationLockedSubtitle =
-      'Location sharing is locked until a session is started.';
+      'Location sharing is disabled until you start a session.';
   static const trackingEndsIn = 'Ends in';
   static const enableTrackingButton = 'Enable tracking';
   static const trackingDisabledLabel = 'Tracking disabled';

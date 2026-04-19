@@ -46,12 +46,29 @@ class ValhallaRoutingService {
       }
 
       return ValhallaRoutingResult(
-        routePoints: result.shape,
+        routePoints: _normalizeRoutePoints(result.shape),
         distanceMeters: result.totalDistanceKm * 1000,
       );
     } catch (_) {
       return null;
     }
+  }
+
+  List<LatLng> _normalizeRoutePoints(List<LatLng> points) {
+    if (points.isEmpty) {
+      return points;
+    }
+
+    final normalized = <LatLng>[points.first];
+    for (var i = 1; i < points.length; i++) {
+      final current = points[i];
+      final previous = normalized.last;
+      if (current.latitude != previous.latitude ||
+          current.longitude != previous.longitude) {
+        normalized.add(current);
+      }
+    }
+    return normalized;
   }
 
   void dispose() {

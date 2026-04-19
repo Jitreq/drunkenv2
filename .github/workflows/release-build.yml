@@ -108,7 +108,11 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path release-artifacts | Out-Null
-          Compress-Archive -Path build/windows/runner/Release/* -DestinationPath release-artifacts/windows-release.zip
+          $releasePath = Join-Path $PWD 'build/windows/runner/Release'
+          if (-Not (Test-Path $releasePath)) {
+            throw "Windows release path not found: $releasePath"
+          }
+          Compress-Archive -Path (Join-Path $releasePath '*') -DestinationPath "$PWD\release-artifacts\windows-release.zip"
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4

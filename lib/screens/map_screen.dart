@@ -249,7 +249,7 @@ class _MapScreenState extends State<MapScreen> {
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+        padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -269,6 +269,7 @@ class _MapScreenState extends State<MapScreen> {
                               center: _mapCenter,
                               zoom: _mapZoom,
                               minZoom: 5,
+                              interactiveFlags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                               onPositionChanged: (position, hasGesture) {
                                 if (!mounted) return;
                                 setState(() {

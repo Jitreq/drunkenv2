@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../core/strings.dart';
 import '../core/theme/app_colors.dart';
 import '../data/mock_data.dart';
+import '../widgets/app_top_padding.dart';
 import '../widgets/xr_app_bar.dart';
 import 'home_screen.dart';
 import 'map_screen.dart';
@@ -130,92 +131,101 @@ class _RootShellState extends State<RootShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: XrAppBar(
-        title: pageTitles[selectedIndex],
-        actions: [
-          if (trackingEnabled && sessionEndTime != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceContainer.withValues(alpha: 0xE6),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppColors.outline),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.timer, size: 16, color: AppColors.secondary),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${Strings.trackingEndsIn} ${_trackingRemainingLabel()}',
-                      style: Theme.of(context).textTheme.bodyMedium,
+    return AppTopPadding(
+      child: SafeArea(
+        top: true,
+        bottom: false,
+        child: Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: XrAppBar(
+            title: pageTitles[selectedIndex],
+            actions: [
+              if (trackingEnabled && sessionEndTime != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceContainer.withValues(alpha: 0xE6),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.outline),
                     ),
-                  ],
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.timer, size: 16, color: AppColors.secondary),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${Strings.trackingEndsIn} ${_trackingRemainingLabel()}',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          IconButton(
-            icon: const Icon(Icons.notifications, color: AppColors.textPrimary),
-            onPressed: _showNotifications,
-          ),
-        ],
-      ),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          IndexedStack(
-            index: selectedIndex,
-            children: [
-              ProfileScreen(
-                onLogout: widget.onLogout,
-                trackingEnabled: trackingEnabled,
-                gpsAvailable: gpsAvailable,
-                trackingDurationHours: trackingHours,
-                sessionEndTime: sessionEndTime,
-                onDurationChanged: _updateTrackingHours,
-                onStartTracking: _startTrackingSession,
-                onShareLocationChanged: (value) {
-                  if (!value) {
-                    _stopTrackingSession();
-                  }
-                },
-              ),
-              MapScreen(
-                selectedFriend: selectedFriend,
-                trackedFriend: trackedFriend,
-                trackingEnabled: trackingEnabled,
-                onOpenSettings: _openSettings,
-                onClearRoute: _clearRoute,
-                onShowFriendOnMap: _showFriendOnMap,
-                onTrackFriend: _toggleTracking,
-                onGpsStatusChanged: _updateGpsStatus,
-              ),
-              HomeScreen(
-                trackedFriend: trackedFriend,
-                onShowFriendOnMap: _showFriendOnMap,
-                onTrackFriend: _toggleTracking,
-                trackingEnabled: trackingEnabled,
-                sessionEndTime: sessionEndTime,
+              IconButton(
+                icon: const Icon(Icons.notifications, color: AppColors.textPrimary),
+                onPressed: _showNotifications,
               ),
             ],
           ),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (value) => setState(() => selectedIndex = value),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.settings),
-            label: Strings.settingsTitle,
+          body: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                IndexedStack(
+                  index: selectedIndex,
+                  children: [
+                    ProfileScreen(
+                      onLogout: widget.onLogout,
+                      trackingEnabled: trackingEnabled,
+                      gpsAvailable: gpsAvailable,
+                      trackingDurationHours: trackingHours,
+                      sessionEndTime: sessionEndTime,
+                      onDurationChanged: _updateTrackingHours,
+                      onStartTracking: _startTrackingSession,
+                      onShareLocationChanged: (value) {
+                        if (!value) {
+                          _stopTrackingSession();
+                        }
+                      },
+                    ),
+                    MapScreen(
+                      selectedFriend: selectedFriend,
+                      trackedFriend: trackedFriend,
+                      trackingEnabled: trackingEnabled,
+                      onOpenSettings: _openSettings,
+                      onClearRoute: _clearRoute,
+                      onShowFriendOnMap: _showFriendOnMap,
+                      onTrackFriend: _toggleTracking,
+                      onGpsStatusChanged: _updateGpsStatus,
+                    ),
+                    HomeScreen(
+                      trackedFriend: trackedFriend,
+                      onShowFriendOnMap: _showFriendOnMap,
+                      onTrackFriend: _toggleTracking,
+                      trackingEnabled: trackingEnabled,
+                      sessionEndTime: sessionEndTime,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          NavigationDestination(icon: Icon(Icons.map), label: Strings.mapTitle),
-          NavigationDestination(icon: Icon(Icons.group), label: Strings.friendsTitle),
-        ],
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: selectedIndex,
+            onDestinationSelected: (value) => setState(() => selectedIndex = value),
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.settings),
+                label: Strings.settingsTitle,
+              ),
+              NavigationDestination(icon: Icon(Icons.map), label: Strings.mapTitle),
+              NavigationDestination(icon: Icon(Icons.group), label: Strings.friendsTitle),
+            ],
+          ),
+        ),
       ),
     );
   }

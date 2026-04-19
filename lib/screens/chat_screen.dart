@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/strings.dart';
 import '../core/theme/app_colors.dart';
 import '../data/mock_data.dart';
+import '../widgets/app_top_padding.dart';
 import '../widgets/profile_sheet.dart';
 import '../widgets/xr_app_bar.dart';
 import 'call_screen.dart';
@@ -94,9 +95,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: XrAppBar(
+    return AppTopPadding(
+      child: Scaffold(
+        appBar: XrAppBar(
         title: '${Strings.chatTitle} · ${widget.friendName}',
         actions: [
           if (widget.trackingEnabled && widget.sessionEndTime != null)
@@ -265,7 +266,8 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
       ),
-    );
+    ),
+    ); 
   }
 }
 

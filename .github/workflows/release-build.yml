@@ -55,9 +55,9 @@ jobs:
         shell: pwsh
         run: flutter doctor -v
 
-      - name: Build Android app bundle
+      - name: Build Android APK
         if: matrix.platform == 'android'
-        run: flutter build appbundle --release
+        run: flutter build apk --release
 
       - name: Build Linux release
         if: matrix.platform == 'linux'
@@ -80,66 +80,93 @@ jobs:
         if: matrix.platform == 'android'
         run: |
           mkdir -p release-artifacts
-          cp build/app/outputs/bundle/release/app-release.aab release-artifacts/app-release.aab
+          cp build/app/outputs/flutter-apk/app-release.apk release-artifacts/drunken-android.apk
 
       - name: Package Linux artifact
         if: matrix.platform == 'linux'
         run: |
           mkdir -p release-artifacts
           cd build/linux/x64/release
-          zip -r "$GITHUB_WORKSPACE/release-artifacts/linux-release.zip" bundle
+          zip -r "$GITHUB_WORKSPACE/release-artifacts/drunken-linux.zip" bundle
 
       - name: Package macOS artifact
         if: matrix.platform == 'macos'
         run: |
           mkdir -p release-artifacts
-          app_path=$(find build/macos -maxdepth 6 -type d -name '*.app' | head -n 1)
+          app_path=$(find build/macos -maxdepth 8 -type d -name '*.app' | head -n 1)
           if [ -z "$app_path" ]; then
             echo "macOS app bundle not found under build/macos"
-            find build/macos -maxdepth 6 -type d -name '*.app' -print
+            find build/macos -maxdepth 8 -type d -name '*.app' -print
             exit 1
           fi
           app_dir=$(dirname "$app_path")
           app_name=$(basename "$app_path")
           cd "$app_dir"
-          zip -r "$GITHUB_WORKSPACE/release-artifacts/macos-release.zip" "$app_name"
+          zip -r "$GITHUB_WORKSPACE/release-artifacts/drunken-macos.zip" "$app_name"
 
       - name: Package iOS artifact
         if: matrix.platform == 'macos'
         run: |
           mkdir -p release-artifacts
-          app_path=$(find build/ios -maxdepth 8 -type d -name '*.app' | head -n 1)
+          app_path=$(find build/ios -maxdepth 12 -type d -name '*.app' | head -n 1)
           if [ -z "$app_path" ]; then
             echo "iOS app bundle not found under build/ios"
-            find build/ios -maxdepth 8 -type d -name '*.app' -print
+            find build/ios -maxdepth 12 -type d -name '*.app' -print
             exit 1
           fi
           app_dir=$(dirname "$app_path")
           app_name=$(basename "$app_path")
           cd "$app_dir"
-          zip -r "$GITHUB_WORKSPACE/release-artifacts/ios-release.zip" "$app_name"
+          zip -r "$GITHUB_WORKSPACE/release-artifacts/drunken-ios.zip" "$app_name"
 
       - name: Package Windows artifact
         if: matrix.platform == 'windows'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path release-artifacts -Force | Out-Null
-          $releasePath = Get-ChildItem -Path "$PWD\build\windows" -Directory -Recurse -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -match 'Release$' } |
-            Select-Object -First 1
-          if (-Not $releasePath) {
-            Write-Host "Windows release directory not found under build/windows"
+          $releasePath = Join-Path $PWD 'build\windows\runner\Release'
+          if (-Not (Test-Path $releasePath)) {
+            Write-Host "Windows release directory not found: $releasePath"
             Get-ChildItem -Path "$PWD\build\windows" -Directory -Recurse | Select-Object FullName
             throw "Windows release path not found"
           }
-          Write-Host "Found Windows release directory: $($releasePath.FullName)"
-          Compress-Archive -Path "$($releasePath.FullName)\*" -DestinationPath "$PWD\release-artifacts\windows-release.zip"
+          Write-Host "Found Windows release directory: $releasePath"
+          Compress-Archive -Path "$releasePath\*" -DestinationPath "$PWD\release-artifacts\drunken-windows.zip"
 
-      - name: Upload release artifact
+      - name: Upload Android artifact
+        if: matrix.platform == 'android'
         uses: actions/upload-artifact@v4
         with:
-          name: release-${{ matrix.platform }}
-          path: release-artifacts/*
+          name: drunken-android.apk
+          path: release-artifacts/drunken-android.apk
+
+      - name: Upload Linux artifact
+        if: matrix.platform == 'linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: drunken-linux.zip
+          path: release-artifacts/drunken-linux.zip
+
+      - name: Upload macOS artifact
+        if: matrix.platform == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: drunken-macos.zip
+          path: release-artifacts/drunken-macos.zip
+
+      - name: Upload iOS artifact
+        if: matrix.platform == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: drunken-ios.zip
+          path: release-artifacts/drunken-ios.zip
+
+      - name: Upload Windows artifact
+        if: matrix.platform == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: drunken-windows.zip
+          path: release-artifacts/drunken-windows.zip
 
   publish:
     needs: build

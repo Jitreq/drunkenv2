@@ -124,14 +124,23 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path release-artifacts -Force | Out-Null
-          $releasePath = Join-Path $PWD 'build\windows\runner\Release'
+          $root = (Resolve-Path .).Path
+          $releasePath = Join-Path $root 'build\windows\runner\Release'
           if (-Not (Test-Path $releasePath)) {
             Write-Host "Windows release directory not found: $releasePath"
-            Get-ChildItem -Path "$PWD\build\windows" -Directory -Recurse | Select-Object FullName
-            throw "Windows release path not found"
+            Write-Host "Looking for executable under build/windows..."
+            Get-ChildItem -Path "$root\build\windows" -Recurse -Filter '*.exe' -ErrorAction SilentlyContinue |
+              Select-Object -First 20 | ForEach-Object { Write-Host $_.FullName }
+            $exeFile = Get-ChildItem -Path "$root\build\windows" -Recurse -Filter '*.exe' -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -notmatch '\\.dart_tool' } |
+              Select-Object -First 1
+            if (-Not $exeFile) {
+              throw "No .exe file found under build/windows"
+            }
+            $releasePath = Split-Path -Parent $exeFile.FullName
+            Write-Host "Using exe directory: $releasePath"
           }
-          Write-Host "Found Windows release directory: $releasePath"
-          Compress-Archive -Path "$releasePath\*" -DestinationPath "$PWD\release-artifacts\drunken-windows.zip"
+          Compress-Archive -Path "$releasePath\*" -DestinationPath "$root\release-artifacts\drunken-windows.zip"
 
       - name: Upload Android artifact
         if: matrix.platform == 'android'
